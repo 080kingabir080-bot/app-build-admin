@@ -3,389 +3,513 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Now Management | נבחרת הנציגים</title>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <title>App Now | Command Center 🚀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;300;400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #FF3B30; /* אדום SIGNAL */
-            --bg: #F2F2F7;
-            --card: #FFFFFF;
+            --primary: #FF3B30; /* אדום סיגנל עוצמתי */
+            --bg: #FFFFFF;
+            --secondary-bg: #F2F2F7;
+            --card-bg: #FFFFFF;
             --text: #1C1C1E;
             --text-dim: #8E8E93;
             --border: #E5E5EA;
             --success: #34C759;
-            --shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --shadow: 0 20px 40px rgba(0,0,0,0.08);
+            --radius: 28px;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
         body { 
-            margin: 0; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); 
+            margin: 0; font-family: 'Heebo', sans-serif; background: var(--secondary-bg); color: var(--text); 
             height: 100vh; overflow: hidden;
         }
 
-        /* --- UI Components --- */
-        .glass-panel {
-            background: var(--card); border-radius: 28px; border: 1px solid var(--border);
-            box-shadow: var(--shadow); padding: 25px; width: 90%; max-width: 450px;
-            margin: 20px auto; position: relative;
-        }
+        /* --- Transitions --- */
+        .view { display: none; height: 100vh; overflow-y: auto; padding: 20px; animation: slideIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .view.active { display: block; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .input-group { margin-bottom: 15px; }
-        input, select {
-            width: 100%; padding: 16px; border-radius: 18px; border: 1px solid var(--border);
-            background: #F9F9F9; font-size: 1rem; outline: none; transition: 0.3s;
+        /* --- UI Components --- */
+        .panel { 
+            background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);
+            box-shadow: var(--shadow); padding: 30px; max-width: 500px; margin: 40px auto; position: relative;
         }
-        input:focus { border-color: var(--primary); background: #FFF; }
+        
+        .title-group { text-align: center; margin-bottom: 30px; }
+        .title-group h1 { font-weight: 900; font-size: 2.2rem; margin: 0; letter-spacing: -1px; }
+        .title-group p { color: var(--text-dim); margin-top: 5px; }
+
+        .input-round {
+            width: 100%; padding: 18px 25px; border-radius: 20px; border: 1px solid var(--border);
+            background: #F9F9F9; font-size: 1rem; margin-bottom: 15px; transition: 0.3s;
+        }
+        .input-round:focus { border-color: var(--primary); background: #FFF; box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1); }
 
         .btn {
-            width: 100%; padding: 18px; border-radius: 20px; border: none;
-            font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 20px; border-radius: 22px; border: none; font-size: 1.1rem;
+            font-weight: 900; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:active { transform: scale(0.97); }
-        .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-primary:active { transform: scale(0.96); }
+        .btn-ghost { background: transparent; color: var(--primary); border: 2px solid var(--primary); margin-top: 10px; }
 
-        /* --- Transitions --- */
-        .view { display: none; height: 100vh; overflow-y: auto; padding-bottom: 50px; }
-        .view.active { display: block; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- Status & Pulse --- */
+        .live-status { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--success); font-size: 0.9rem; }
+        .pulse { width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulseAni 1.5s infinite; }
+        @keyframes pulseAni { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
 
-        /* --- Status Dots --- */
-        .pulse-dot {
-            width: 10px; height: 10px; background: var(--success); border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 
-            0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); }
-            70% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
-        }
-
-        /* --- Chat Interface --- */
-        .chat-container { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 20px; margin-bottom: 15px; }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 0.95rem; line-height: 1.4; }
-        .msg.admin { background: var(--bg); align-self: flex-start; border-bottom-right-radius: 4px; }
+        /* --- Chat System --- */
+        .chat-box { height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 15px; background: #FAFAFA; border-radius: 20px; border: 1px solid var(--border); }
+        .msg { padding: 12px 18px; border-radius: 22px; max-width: 85%; font-size: 0.95rem; line-height: 1.5; position: relative; }
+        .msg.admin { background: white; align-self: flex-start; border-bottom-right-radius: 4px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-left-radius: 4px; }
-        .chat-footer { display: flex; gap: 10px; align-items: center; }
-        .attach-btn { background: var(--bg); border: none; font-size: 1.5rem; cursor: pointer; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
+        .msg-img { max-width: 100%; border-radius: 12px; margin-top: 8px; cursor: pointer; }
+
+        .chat-tools { display: flex; gap: 10px; margin-top: 15px; }
+        .task-btn { padding: 10px 15px; border-radius: 14px; border: none; background: #007AFF; color: white; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+        .task-btn.finish { background: var(--success); }
 
         /* --- Admin Specific --- */
-        .request-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn-task { padding: 10px; font-size: 0.85rem; background: #007AFF; color: white; border-radius: 12px; border: none; cursor: pointer; }
+        .admin-nav { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 15px; margin-bottom: 20px; }
+        .nav-item { padding: 10px 20px; background: white; border-radius: 50px; border: 1px solid var(--border); white-space: nowrap; cursor: pointer; font-weight: 700; }
+        .nav-item.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* --- Loader --- */
-        .loader { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* --- Training View --- */
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 20px; overflow: hidden; background: #000; margin-bottom: 20px; }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #finish-training-btn { display: none; }
+
+        /* --- Blur Overlay --- */
+        .locked-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); z-index: 10; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); }
+
+        /* --- Custom Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="view-auth" class="view active">
-    <div style="text-align: center; padding-top: 50px;">
-        <h1 style="font-weight: 900; letter-spacing: -1px; margin-bottom: 5px;">App Now <span style="color: var(--primary);">Management</span></h1>
-        <p style="color: var(--text-dim);">מרכז ניהול והכשרת נציגים 🏢</p>
-    </div>
-
-    <div class="glass-panel" id="auth-box">
-        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-            <button class="btn btn-secondary" onclick="switchAuth('login')" id="tab-login" style="border-color: var(--primary);">התחברות 🔑</button>
-            <button class="btn btn-secondary" onclick="switchAuth('register')" id="tab-register">הצטרפות 🚀</button>
+    <div class="panel">
+        <div class="title-group">
+            <h1>App Now <span style="color: var(--primary);">Network</span></h1>
+            <p>הצטרף לנבחרת נציגי השירות המובילה בישראל 💎</p>
         </div>
 
-        <div id="form-login">
-            <div class="input-group"><input type="text" id="li-name" placeholder="שם משתמש"></div>
-            <div class="input-group"><input type="password" id="li-pass" placeholder="סיסמה"></div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9rem;">
-                <input type="checkbox" id="remember" style="width: 18px; height: 18px;"> זכור אותי
-            </div>
-            <button class="btn btn-primary" onclick="handleLogin()">היכנס למערכת 🔓</button>
+        <div id="auth-tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn btn-primary" style="flex:1" onclick="toggleAuth('reg')">הרשמה ✨</button>
+            <button class="btn btn-ghost" style="flex:1" onclick="toggleAuth('login')">התחברות 🔑</button>
         </div>
 
-        <div id="form-register" style="display: none;">
-            <div style="background: #FFF5F5; padding: 15px; border-radius: 15px; margin-bottom: 15px; font-size: 0.9rem; color: #D70015;">
-                ✨ <b>הצעה מיוחדת:</b> נציגי שירות ב-App Now! הכשרה חכמה בזום ותחילת עבודה מיידית. 💸
+        <div id="pane-reg">
+            <div style="background: #FFF5F5; padding: 15px; border-radius: 18px; color: var(--primary); font-weight: 700; font-size: 0.9rem; margin-bottom: 20px; text-align: center;">
+                📣 רוצים להיות נציגי App Now? <br> הכשרה בזום ותחילת עבודה מיידית!
             </div>
-            <div class="input-group"><input type="text" id="re-name" placeholder="שם מלא 👤"></div>
-            <div class="input-group"><input type="password" id="re-pass" placeholder="סיסמה 🔒"></div>
-            <div class="input-group"><input type="tel" id="re-phone" placeholder="טלפון 📱"></div>
-            <div class="input-group"><input type="email" id="re-email" placeholder="אימייל ✉️"></div>
-            <div class="input-group">
-                <label style="font-size: 0.8rem; color: var(--text-dim); margin-right: 10px;">תאריך לידה 📅</label>
-                <input type="date" id="re-dob">
+            <input type="text" id="reg-name" class="input-round" placeholder="שם מלא 👤">
+            <input type="password" id="reg-pass" class="input-round" placeholder="סיסמה (לפחות 6 תווים) 🔒">
+            <input type="tel" id="reg-phone" class="input-round" placeholder="טלפון חובה 📱">
+            <input type="email" id="reg-email" class="input-round" placeholder="אימייל ✉️">
+            <input type="date" id="reg-dob" class="input-round">
+            <button class="btn btn-primary" onclick="app.register()">הירשם להכשרה עכשיו 🚀</button>
+        </div>
+
+        <div id="pane-login" style="display: none;">
+            <input type="text" id="log-name" class="input-round" placeholder="שם משתמש 👤">
+            <input type="password" id="log-pass" class="input-round" placeholder="סיסמה 🔒">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <input type="checkbox" id="remember-me" style="width:20px; height:20px;">
+                <span style="font-size: 0.9rem;">זכור אותי במכשיר זה</span>
             </div>
-            <button class="btn btn-primary" onclick="handleRegister()" id="reg-btn">
-                <span id="reg-text">הירשם להכשרה ✨</span>
-                <div class="loader" id="reg-loader"></div>
-            </button>
+            <button class="btn btn-primary" onclick="app.login()">התחבר לפאנל 🔓</button>
         </div>
     </div>
 </div>
 
 <div id="view-pending" class="view">
-    <div class="glass-panel" style="text-align: center; margin-top: 100px;">
-        <div style="font-size: 4rem; margin-bottom: 20px;">⏳</div>
-        <h2 style="margin: 0;">הבקשה בבחינה...</h2>
-        <p style="color: var(--text-dim);">המנהל בוחן את בקשת ההצטרפות שלך כרגע. נודיע לך כשהמשתמש יאושר! 😊</p>
-        <button class="btn btn-secondary" onclick="location.reload()">רענן סטטוס 🔄</button>
+    <div class="panel" style="text-align: center; padding: 60px 30px;">
+        <div style="font-size: 5rem; margin-bottom: 20px;">👮‍♂️</div>
+        <h2>הבקשה בבדיקה</h2>
+        <p style="color: var(--text-dim);">שמעון המנהל עובר על פרטי הרישום שלך. <br> ברגע שתאושר, תוכל להתחיל בראיון האונליין.</p>
+        <div style="margin-top: 20px; color: var(--primary); font-weight: 700;">סטטוס: ממתין לאישור מנהל ⏳</div>
+        <button class="btn btn-ghost" onclick="location.reload()" style="margin-top: 30px;">בדוק שוב 🔄</button>
     </div>
 </div>
 
 <div id="view-interview" class="view">
-    <div style="filter: blur(5px); pointer-events: none; position: fixed; width: 100%; height: 100%; z-index: -1;">
-        <div style="padding: 20px;"><div style="height: 100px; background: white; border-radius: 20px;"></div></div>
-    </div>
-    <div class="glass-panel" style="margin-top: 150px; text-align: center;">
-        <h2 style="margin-bottom: 10px;">הפאנל נעול 🔒</h2>
-        <p style="color: var(--text-dim);">כדי להתחיל לעבוד, עליך לעבור ראיון אונליין קצר.</p>
-        <button class="btn btn-primary" onclick="startInterviewUser()" id="user-start-int">
-            <div class="pulse-dot"></div> התחל ראיון אונליין
-        </button>
+    <div class="panel" style="max-width: 600px; height: 85vh; display: flex; flex-direction: column;">
+        <div id="lock-overlay" class="locked-overlay">
+            <div style="text-align: center; padding: 30px;">
+                <h2 style="margin: 0;">הפאנל נעול 🔒</h2>
+                <p>הצטרפותך אושרה! עכשיו נשאר רק ראיון זריז.</p>
+                <button class="btn btn-primary" onclick="app.startInterview()">
+                    <div class="pulse"></div> התחל ראיון אונליין
+                </button>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
+            <div class="live-status"><div class="pulse"></div> ראיון עם שמעון</div>
+            <button onclick="app.logout()" style="background:none; border:none; color:var(--text-dim); cursor:pointer;">התנתק</button>
+        </div>
+
+        <div class="chat-box" id="int-chat-box"></div>
+
+        <div id="admin-chat-controls" style="display: none; padding: 15px 0; border-top: 1px solid var(--border);">
+            <div style="font-size: 0.75rem; font-weight: 900; color: var(--primary); margin-bottom: 10px;">כלי ניהול ראיון 🛠️</div>
+            <div class="chat-tools">
+                <button class="task-btn" onclick="app.adminSendTask('welcome')">👋 פתיחה</button>
+                <button class="task-btn" onclick="app.adminSendTask('cv')">📄 קו"ח</button>
+                <button class="task-btn" onclick="app.adminSendTask('id')">🆔 ת.ז</button>
+                <button class="task-btn finish" onclick="app.adminSendTask('finish')">🎓 סיום והכשרה</button>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+            <button class="btn btn-ghost" style="width: 60px; padding: 10px;" onclick="document.getElementById('file-input').click()">📎</button>
+            <input type="file" id="file-input" style="display: none;" onchange="app.handleFileUpload(event)">
+            <input type="text" id="chat-input" class="input-round" style="margin-bottom: 0;" placeholder="כתוב הודעה...">
+            <button class="btn btn-primary" style="width: 70px; padding: 10px;" onclick="app.sendMsg()">➤</button>
+        </div>
     </div>
 </div>
 
-<div id="view-chat" class="view">
-    <div class="glass-panel" style="max-width: 500px; height: 90vh; display: flex; flex-direction: column;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px;">
-            <h3 style="margin: 0;">ראיון עבודה אונליין 🎧</h3>
-            <div id="interview-status-tag" style="font-size: 0.8rem; color: var(--success); display: flex; align-items: center; gap: 5px;">
-                <div class="pulse-dot"></div> מחובר
-            </div>
+<div id="view-training" class="view">
+    <div class="panel" style="max-width: 800px;">
+        <div class="title-group" style="text-align: right;">
+            <h1>מרכז ההכשרה 🎓</h1>
+            <p>צפה בסרטונים וסיים את הפרקים כדי להתחיל לעבוד.</p>
         </div>
-        <div class="chat-container" id="chat-box"></div>
         
-        <div id="admin-tools" style="display: none; margin-bottom: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
-            <label style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">שלח משימה למשתמש:</label>
-            <div class="task-grid">
-                <button class="btn-task" onclick="sendTask('welcome')">👋 ברוך הבא</button>
-                <button class="btn-task" onclick="sendTask('cv')">📄 קורות חיים</button>
-                <button class="btn-task" onclick="sendTask('id')">🆔 תעודת זהות</button>
-                <button class="btn-task" onclick="sendTask('finish')" style="background: var(--success);">✅ סיום והכשרה</button>
+        <div id="training-content">
             </div>
-        </div>
 
-        <div class="chat-footer">
-            <button class="attach-btn" id="btn-attach" onclick="document.getElementById('file-input').click()">📎</button>
-            <input type="file" id="file-input" style="display: none;" onchange="handleFileUpload(event)">
-            <input type="text" id="chat-input" placeholder="כתוב משהו...">
-            <button class="btn btn-primary" style="width: 60px; padding: 10px;" onclick="sendMessage()">➤</button>
+        <div id="training-status" style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px; text-align: center;">
+            <p id="training-msg" style="font-weight: 700;">צפה בסרטון עד הסוף כדי להתקדם...</p>
+            <button id="finish-training-btn" class="btn btn-primary" onclick="app.finishTraining()">סיימתי את ההכשרה - בקש אישור עבודה ✅</button>
         </div>
     </div>
 </div>
 
 <div id="view-admin" class="view">
-    <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
-        <h1 style="font-weight: 900;">שלום, שמעון 👋</h1>
-        <p style="color: var(--text-dim);">ניהול נציגים וראיונות</p>
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1 style="font-weight: 900; font-size: 2.5rem;">מערכת ניהול <span style="color:var(--primary)">App Now</span></h1>
+            <button class="btn btn-ghost" style="width: auto; padding: 10px 20px;" onclick="app.logout()">התנתק 🚪</button>
+        </div>
 
-        <h3 style="margin-top: 30px;">בקשות הצטרפות חדשות 📩</h3>
-        <div id="admin-pending-list"></div>
+        <div class="admin-nav">
+            <div class="nav-item active" onclick="app.switchAdminTab('requests')">בקשות הצטרפות ( <span id="count-req">0</span> )</div>
+            <div class="nav-item" onclick="app.switchAdminTab('interviews')">ראיונות פעילים ( <span id="count-int">0</span> )</div>
+            <div class="nav-item" onclick="app.switchAdminTab('training')">הקמת הכשרות 🎬</div>
+            <div class="nav-item" onclick="app.switchAdminTab('archive')">ארכיון וקבצים 📂</div>
+        </div>
 
-        <h3 style="margin-top: 30px;">נציגים ממתינים לראיון 🎙️</h3>
-        <div id="admin-interview-list"></div>
+        <div id="admin-main-content">
+            </div>
     </div>
 </div>
 
 <script>
-    // --- DATABASE MOCKUP ---
-    const TG_CONFIG = { botToken: '8359245682:AAFr9l5f0yMop4QrQ2wPfqBmamMLi1SFmgA', chatId: '8017590244' };
-    let users = JSON.parse(localStorage.getItem('appNow_users')) || [
-        { name: 'shimon', pass: 'shimonadmin0', role: 'admin' }
-    ];
-    let currentUser = null;
-    let chats = JSON.parse(localStorage.getItem('appNow_chats')) || {};
+    // --- CORE LOGIC ---
+    const app = {
+        config: {
+            botToken: '8359245682:AAFr9l5f0yMop4QrQ2wPfqBmamMLi1SFmgA',
+            chatId: '8017590244',
+            adminUser: 'shimon',
+            adminPass: 'shimonadmin0'
+        },
+        
+        db: {
+            users: JSON.parse(localStorage.getItem('app_users')) || [],
+            chats: JSON.parse(localStorage.getItem('app_chats')) || {},
+            training: JSON.parse(localStorage.getItem('app_training')) || [
+                { id: 1, title: 'מבוא ל-App Now', desc: 'איך עובדת המערכת שלנו?', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', timer: 5 }
+            ]
+        },
 
-    function save() { 
-        localStorage.setItem('appNow_users', JSON.stringify(users)); 
-        localStorage.setItem('appNow_chats', JSON.stringify(chats));
-    }
+        state: {
+            current: null,
+            activeChatPartner: null,
+            currentTab: 'requests'
+        },
 
-    // --- NAVIGATION ---
-    function showView(viewId) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-    }
+        init() {
+            console.log("App Now System Initialized 🚀");
+            this.save();
+            this.renderAdminTab();
+        },
 
-    function switchAuth(type) {
-        const isLogin = type === 'login';
-        document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
-        document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
-        document.getElementById('tab-login').style.borderColor = isLogin ? 'var(--primary)' : 'var(--border)';
-        document.getElementById('tab-register').style.borderColor = isLogin ? 'var(--border)' : 'var(--primary)';
-    }
+        save() {
+            localStorage.setItem('app_users', JSON.stringify(this.db.users));
+            localStorage.setItem('app_chats', JSON.stringify(this.db.chats));
+            localStorage.setItem('app_training', JSON.stringify(this.db.training));
+        },
 
-    // --- LOGIC: REGISTER ---
-    async function handleRegister() {
-        const name = document.getElementById('re-name').value;
-        const pass = document.getElementById('re-pass').value;
-        const phone = document.getElementById('re-phone').value;
-        const email = document.getElementById('re-email').value;
-        const dob = document.getElementById('re-dob').value;
+        // --- AUTH ---
+        register() {
+            const name = document.getElementById('reg-name').value;
+            const pass = document.getElementById('reg-pass').value;
+            const phone = document.getElementById('reg-phone').value;
+            const email = document.getElementById('reg-email').value;
+            const dob = document.getElementById('reg-dob').value;
 
-        if(!name || !pass || !phone) return alert("מלא את כל שדות החובה");
+            if(!name || !pass || !phone) return alert("אח שלי, תמלא את כל הפרטים!");
 
-        document.getElementById('reg-text').style.opacity = '0';
-        document.getElementById('reg-loader').style.display = 'block';
+            const newUser = {
+                name, pass, phone, email, dob,
+                status: 'pending', // pending, interview, training, active
+                interviewReady: false,
+                trainingFinished: false,
+                role: 'rep',
+                regDate: new Date().toLocaleDateString()
+            };
 
-        setTimeout(() => {
-            const newUser = { name, pass, phone, email, dob, role: 'rep', status: 'pending', waitingForInterview: false };
-            users.push(newUser);
-            save();
-            
+            this.db.users.push(newUser);
+            this.save();
+
             // Notify Telegram
-            const msg = `<b>🆕 הרשמה חדשה מהפאנל!</b>\n👤 שם: ${name}\n📱 טלפון: ${phone}\n✉️ מייל: ${email}\n📅 תאריך לידה: ${dob}`;
-            fetch(`https://api.telegram.org/bot${TG_CONFIG.botToken}/sendMessage?chat_id=${TG_CONFIG.chatId}&text=${encodeURIComponent(msg)}&parse_mode=HTML`);
+            const text = `<b>🔔 מועמד חדש מהפאנל!</b>\n👤 שם: ${name}\n📱 טלפון: ${phone}\n✉️ מייל: ${email}\n📅 לידה: ${dob}`;
+            fetch(`https://api.telegram.org/bot${this.config.botToken}/sendMessage?chat_id=${this.config.chatId}&text=${encodeURIComponent(text)}&parse_mode=HTML`);
 
-            alert("הבקשה נשלחה! אנחנו עוברים עליה ונחזור אלייך לראיון זריז.");
+            alert("ההרשמה הצליחה! אנחנו בוחנים את הבקשה שלך.");
             location.reload();
-        }, 2000);
-    }
+        },
 
-    // --- LOGIC: LOGIN ---
-    function handleLogin() {
-        const name = document.getElementById('li-name').value;
-        const pass = document.getElementById('li-pass').value;
-        const user = users.find(u => u.name === name && u.pass === pass);
+        login() {
+            const name = document.getElementById('log-name').value;
+            const pass = document.getElementById('log-pass').value;
 
-        if(!user) return alert("פרטים שגויים");
-
-        currentUser = user;
-        if(user.role === 'admin') {
-            renderAdmin();
-            showView('view-admin');
-        } else {
-            if(user.status === 'pending') showView('view-pending');
-            else if(user.status === 'approved_locked') {
-                if(user.inInterview) startInterviewUser();
-                else showView('view-interview');
+            if(name === this.config.adminUser && pass === this.config.adminPass) {
+                this.state.current = { name: 'שמעון', role: 'admin' };
+                this.showView('view-admin');
+                return;
             }
-        }
-    }
 
-    // --- LOGIC: ADMIN ---
-    function renderAdmin() {
-        const pendingList = document.getElementById('admin-pending-list');
-        const interviewList = document.getElementById('admin-interview-list');
-        pendingList.innerHTML = '';
-        interviewList.innerHTML = '';
+            const user = this.db.users.find(u => u.name === name && u.pass === pass);
+            if(!user) return alert("שם משתמש או סיסמה לא נכונים ❌");
 
-        users.filter(u => u.status === 'pending').forEach(u => {
-            pendingList.innerHTML += `
-                <div class="request-card">
-                    <b>${u.name}</b> (${u.phone})<br>
-                    <small>${u.email} | ${u.dob}</small>
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button onclick="updateUser('${u.name}', 'approved_locked')" class="btn btn-primary" style="padding:5px; font-size:0.8rem;">אשר הצטרפות ✅</button>
-                        <button onclick="deleteUser('${u.name}')" class="btn btn-secondary" style="padding:5px; font-size:0.8rem;">דחה ❌</button>
+            this.state.current = user;
+            
+            if(user.status === 'pending') this.showView('view-pending');
+            else if(user.status === 'interview') {
+                this.showView('view-interview');
+                if(user.interviewReady) document.getElementById('lock-overlay').style.display = 'none';
+                this.loadChat(user.name);
+            }
+            else if(user.status === 'training') this.renderTraining();
+        },
+
+        logout() { location.reload(); },
+
+        showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        },
+
+        // --- ADMIN DASHBOARD ---
+        switchAdminTab(tab) {
+            this.state.currentTab = tab;
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.target.classList.add('active');
+            this.renderAdminTab();
+        },
+
+        renderAdminTab() {
+            const container = document.getElementById('admin-main-content');
+            const tab = this.state.currentTab;
+            
+            // Update Counts
+            document.getElementById('count-req').innerText = this.db.users.filter(u => u.status === 'pending').length;
+            document.getElementById('count-int').innerText = this.db.users.filter(u => u.status === 'interview' && u.interviewReady).length;
+
+            if(tab === 'requests') {
+                const requests = this.db.users.filter(u => u.status === 'pending');
+                container.innerHTML = requests.map(u => `
+                    <div class="panel" style="max-width: 100%; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="margin:0">${u.name}</h3>
+                            <small>${u.phone} | ${u.email} | ${u.dob}</small>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem;" onclick="app.adminAction('${u.name}', 'approve')">אשר הצטרפות ✅</button>
+                            <button class="btn btn-ghost" style="padding: 10px 20px; font-size: 0.9rem; margin:0;" onclick="app.adminAction('${u.name}', 'reject')">דחה ❌</button>
+                        </div>
+                    </div>
+                `).join('') || '<p style="text-align:center; padding: 40px;">אין בקשות חדשות כרגע...</p>';
+            }
+
+            if(tab === 'interviews') {
+                const ints = this.db.users.filter(u => u.status === 'interview');
+                container.innerHTML = ints.map(u => `
+                    <div class="panel" style="max-width: 100%; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="live-status">${u.interviewReady ? '<div class="pulse"></div> ממתין לראיון' : 'עוד לא לחץ על התחלה'}</div>
+                            <h3 style="margin:0">${u.name}</h3>
+                        </div>
+                        <button class="btn btn-primary" style="width: auto; padding: 10px 30px;" onclick="app.adminStartChat('${u.name}')">התחל ראיון 🎙️</button>
+                    </div>
+                `).join('');
+            }
+
+            if(tab === 'training') {
+                container.innerHTML = `
+                    <div class="panel" style="max-width: 100%;">
+                        <h3>הוספת סרטון הכשרה חדש 🎬</h3>
+                        <input type="text" id="tr-title" class="input-round" placeholder="כותרת הסרטון">
+                        <input type="text" id="tr-url" class="input-round" placeholder="קישור Embed מיוטיוב">
+                        <input type="number" id="tr-timer" class="input-round" placeholder="זמן להופעת כפתור סיום (בשניות)">
+                        <button class="btn btn-primary" onclick="app.adminAddTraining()">הוסף למערכת ההכשרות ➕</button>
+                    </div>
+                `;
+            }
+        },
+
+        adminAction(name, action) {
+            const user = this.db.users.find(u => u.name === name);
+            if(action === 'approve') user.status = 'interview';
+            if(action === 'reject') this.db.users = this.db.users.filter(u => u.name !== name);
+            this.save();
+            this.renderAdminTab();
+        },
+
+        adminStartChat(name) {
+            this.state.activeChatPartner = name;
+            this.showView('view-interview');
+            document.getElementById('admin-chat-controls').style.display = 'block';
+            document.getElementById('lock-overlay').style.display = 'none';
+            this.loadChat(name);
+        },
+
+        // --- INTERVIEW LOGIC ---
+        startInterview() {
+            this.state.current.interviewReady = true;
+            this.save();
+            document.getElementById('lock-overlay').style.display = 'none';
+            this.addMsg('admin', "היי! המנהל שמעון התחבר לראיון. הוא יתחיל איתך ברגע זה.");
+        },
+
+        loadChat(name) {
+            const box = document.getElementById('int-chat-box');
+            box.innerHTML = '';
+            if(this.db.chats[name]) {
+                this.db.chats[name].forEach(m => this.renderMsg(m));
+            }
+        },
+
+        sendMsg() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const name = this.state.current.role === 'admin' ? this.state.activeChatPartner : this.state.current.name;
+            const msg = {
+                sender: this.state.current.role,
+                text,
+                time: new Date().toLocaleTimeString()
+            };
+
+            if(!this.db.chats[name]) this.db.chats[name] = [];
+            this.db.chats[name].push(msg);
+            this.save();
+            this.renderMsg(msg);
+            input.value = '';
+        },
+
+        adminSendTask(type) {
+            const name = this.state.activeChatPartner;
+            let text = "";
+            if(type === 'welcome') text = "👋 ברוך הבא לראיון למשרת נציג שירות ב-App Now. אני שמעון. האם אתה מעל גיל 18 ובעל מחשב נייד?";
+            if(type === 'cv') text = "📄 שמח לשמוע. צרף לי בבקשה <b>קורות חיים</b> עכשיו (לחץ על האטב).";
+            if(type === 'id') text = "🆔 מעולה. שלח לי בבקשה <b>צילום תעודת זהות</b> ברור ונתקדם להכשרה.";
+            if(type === 'finish') {
+                text = "🎓 הראיון הסתיים בהצלחה! אני מעביר אותך כעת לפאנל ההכשרות. בהצלחה!";
+                const user = this.db.users.find(u => u.name === name);
+                user.status = 'training';
+            }
+
+            const msg = { sender: 'admin', text, isTask: true };
+            this.db.chats[name].push(msg);
+            this.save();
+            this.renderMsg(msg);
+        },
+
+        renderMsg(m) {
+            const box = document.getElementById('int-chat-box');
+            const div = document.createElement('div');
+            div.className = `msg ${m.sender}`;
+            div.innerHTML = m.text;
+            if(m.file) {
+                div.innerHTML += `<img src="${m.file}" class="msg-img">`;
+            }
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        },
+
+        handleFileUpload(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const name = this.state.current.role === 'admin' ? this.state.activeChatPartner : this.state.current.name;
+                const msg = {
+                    sender: this.state.current.role,
+                    text: `📎 קובץ מצורף: ${file.name}`,
+                    file: event.target.result
+                };
+                this.db.chats[name].push(msg);
+                this.save();
+                this.renderMsg(msg);
+            };
+            reader.readAsDataURL(file);
+        },
+
+        // --- TRAINING ---
+        renderTraining() {
+            this.showView('view-training');
+            const container = document.getElementById('training-content');
+            container.innerHTML = this.db.training.map(t => `
+                <div class="video-item">
+                    <h3>${t.title}</h3>
+                    <p>${t.desc}</p>
+                    <div class="video-wrapper">
+                        <iframe src="${t.url}" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
-            `;
-        });
+            `).join('');
 
-        users.filter(u => u.status === 'approved_locked').forEach(u => {
-            const isWaiting = u.waitingForInterview ? '<div class="pulse-dot"></div>' : '';
-            interviewList.innerHTML += `
-                <div class="request-card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><b>${u.name}</b> ${u.waitingForInterview ? '(ממתין לראיון)' : ''}</div>
-                    <button onclick="startAdminInterview('${u.name}')" class="btn btn-primary" style="width:auto; padding:8px 15px; font-size:0.8rem;">
-                        ${isWaiting} התחל ראיון
-                    </button>
-                </div>
-            `;
-        });
-    }
+            // Simple timer for the last video
+            const lastVid = this.db.training[this.db.training.length - 1];
+            setTimeout(() => {
+                document.getElementById('finish-training-btn').style.display = 'block';
+                document.getElementById('training-msg').innerText = "כל הכבוד! סיימת את הצפייה. 🎊";
+            }, lastVid.timer * 1000);
+        },
 
-    function updateUser(name, status) {
-        const user = users.find(u => u.name === name);
-        user.status = status;
-        save();
-        renderAdmin();
-    }
+        finishTraining() {
+            this.state.current.status = 'pending_final';
+            this.save();
+            alert("הבקשה לסיום הכשרה נשלחה לשמעון. הוא יפתח לך את מערכת הצ'אטים בקרוב!");
+            location.reload();
+        },
 
-    function deleteUser(name) {
-        users = users.filter(u => u.name !== name);
-        save();
-        renderAdmin();
-    }
+        adminAddTraining() {
+            const title = document.getElementById('tr-title').value;
+            const url = document.getElementById('tr-url').value;
+            const timer = document.getElementById('tr-timer').value;
+            this.db.training.push({ title, url, timer, desc: 'סרטון הכשרה חדש' });
+            this.save();
+            alert("הסרטון נוסף למערכת!");
+            this.renderAdminTab();
+        },
 
-    // --- INTERVIEW SYSTEM ---
-    let activeInterviewPartner = null;
-
-    function startInterviewUser() {
-        currentUser.waitingForInterview = true;
-        save();
-        document.getElementById('user-start-int').innerHTML = "ממתין לחיבור מהמנהל...";
-        showView('view-chat');
-        document.getElementById('admin-tools').style.display = 'none';
-        initChat(currentUser.name);
-    }
-
-    function startAdminInterview(userName) {
-        activeInterviewPartner = userName;
-        showView('view-chat');
-        document.getElementById('admin-tools').style.display = 'block';
-        initChat(userName);
-    }
-
-    function initChat(userName) {
-        if(!chats[userName]) chats[userName] = [];
-        renderMessages(userName);
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('chat-input');
-        const text = input.value.trim();
-        if(!text) return;
-
-        const userName = currentUser.role === 'admin' ? activeInterviewPartner : currentUser.name;
-        chats[userName].push({ sender: currentUser.role, text: text, time: new Date().toLocaleTimeString() });
-        save();
-        input.value = '';
-        renderMessages(userName);
-    }
-
-    function sendTask(type) {
-        const userName = activeInterviewPartner;
-        let text = "";
-        if(type === 'welcome') text = "👋 <b>ברוך הבא לראיון!</b> אני שמעון ואני אעביר לך את הראיון. דרישות: מעל 18, זמינות 3 ימים בשבוע, מחשב נייד. האם המשרה מתאימה לך?";
-        if(type === 'cv') text = "📄 שמח לשמוע! צרף לי בבקשה <b>קורות חיים</b> (לחץ על האטב).";
-        if(type === 'id') text = "🆔 נראה מעולה. תעלה לי בבקשה <b>צילום תעודת זהות</b> כדי שנתקדם להכשרה.";
-        if(type === 'finish') text = "🚀 <b>כל הכבוד!</b> עברת את הראיון. אני מעביר אותך לפאנל ההכשרות שלנו.";
-        
-        chats[userName].push({ sender: 'admin', text: text, isTask: true });
-        save();
-        renderMessages(userName);
-    }
-
-    function handleFileUpload(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-        const userName = currentUser.role === 'admin' ? activeInterviewPartner : currentUser.name;
-        chats[userName].push({ sender: currentUser.role, text: `📎 הועלה קובץ: ${file.name}`, isFile: true });
-        save();
-        renderMessages(userName);
-    }
-
-    function renderMessages(userName) {
-        const box = document.getElementById('chat-box');
-        box.innerHTML = chats[userName].map(m => `
-            <div class="msg ${m.sender === 'admin' ? 'admin' : 'user'}">
-                ${m.text}
-            </div>
-        `).join('');
-        box.scrollTop = box.scrollHeight;
-    }
-
-    // Auto-refresh for simulation
-    setInterval(() => {
-        if(document.getElementById('view-admin').classList.contains('active')) renderAdmin();
-        if(document.getElementById('view-chat').classList.contains('active')) {
-            const userName = currentUser.role === 'admin' ? activeInterviewPartner : currentUser.name;
-            renderMessages(userName);
+        toggleAuth(mode) {
+            document.getElementById('pane-reg').style.display = mode === 'reg' ? 'block' : 'none';
+            document.getElementById('pane-login').style.display = mode === 'login' ? 'block' : 'none';
         }
-    }, 3000);
+    };
 
+    window.onload = () => app.init();
 </script>
 </body>
 </html>
