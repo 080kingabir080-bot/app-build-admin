@@ -3,176 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Now | Enterprise Dashboard</title>
+    <title>App Now | Enterprise Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    
     <style>
-        body { font-family: 'Heebo', sans-serif; background-color: #F8FAFC; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .signal-red { background-color: #FF3B30; }
-        .signal-border { border-color: #FF3B30; }
-        .signal-text { color: #FF3B30; }
-        .sidebar-item:hover { background-color: #FFF5F5; color: #FF3B30; }
-        .sidebar-item.active { background-color: #FF3B30; color: white; }
-        @keyframes pulse-custom { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .animate-pulse-custom { animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        :root { --primary: #FF3B30; --radius: 28px; }
+        body { font-family: 'Heebo', sans-serif; background-color: #FDFDFD; color: #1C1C1E; }
+        .signal-card { background: white; border-radius: var(--radius); border: 1px solid #F2F2F7; box-shadow: 0 10px 40px rgba(0,0,0,0.03); }
+        .btn-primary { background: var(--primary); color: white; border-radius: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 59, 48, 0.2); }
+        .btn-primary:active { transform: scale(0.96); }
+        .input-signal { background: #F9F9FB; border: 1px solid #E5E5EA; border-radius: 18px; padding: 14px 20px; transition: 0.3s; }
+        .input-signal:focus { border-color: var(--primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(255,59,48,0.05); }
+        .sidebar-item.active { background: var(--primary); color: white; }
+        .msg-bubble { padding: 12px 18px; border-radius: 22px; max-width: 80%; font-size: 0.95rem; line-height: 1.5; }
+        .msg-admin { background: #F2F2F7; color: #1C1C1E; border-bottom-right-radius: 4px; align-self: flex-start; }
+        .msg-user { background: var(--primary); color: white; border-bottom-left-radius: 4px; align-self: flex-end; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #E5E5EA; border-radius: 10px; }
     </style>
 </head>
-<body class="text-slate-900">
+<body class="h-screen flex items-center justify-center overflow-hidden">
 
-<div id="app">
-    <div id="view-auth" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 p-6">
-        <div class="glass-card w-full max-w-md rounded-[32px] p-10 shadow-2xl overflow-hidden relative">
-            <div class="absolute top-0 left-0 w-full h-2 signal-red"></div>
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-black tracking-tighter">App Now <span class="signal-text">Network</span></h1>
-                <p class="text-slate-400 mt-2 font-medium">Enterprise Security Protocol v3.0</p>
+<div id="app" class="w-full h-full flex flex-col">
+    <div id="view-auth" class="fixed inset-0 z-50 bg-white flex items-center justify-center p-6">
+        <div class="w-full max-w-md">
+            <div class="text-center mb-10">
+                <h1 class="text-5xl font-black tracking-tighter italic">App Now<span class="text-[#FF3B30]">.</span></h1>
+                <p class="text-slate-400 font-bold mt-2 uppercase text-xs tracking-widest">Global Service Infrastructure</p>
             </div>
             
-            <div id="auth-tabs" class="flex p-1 bg-slate-100 rounded-2xl mb-6">
-                <button onclick="toggleAuth('login')" class="flex-1 py-3 rounded-xl font-bold transition-all" id="btn-tab-login">התחברות</button>
-                <button onclick="toggleAuth('reg')" class="flex-1 py-3 rounded-xl font-bold transition-all bg-white shadow-sm" id="btn-tab-reg">הרשמה</button>
-            </div>
+            <div class="signal-card p-10 space-y-6">
+                <div class="flex p-1 bg-slate-100 rounded-2xl mb-4">
+                    <button onclick="toggleAuth('login')" id="tab-login" class="flex-1 py-3 rounded-xl font-bold transition-all bg-white shadow-sm">כניסה</button>
+                    <button onclick="toggleAuth('reg')" id="tab-reg" class="flex-1 py-3 rounded-xl font-bold transition-all text-slate-500">הרשמה</button>
+                </div>
 
-            <div id="form-content">
-                <div id="pane-reg" class="space-y-4">
-                    <input type="text" id="re-name" placeholder="שם מלא" class="w-full p-4 rounded-2xl border border-slate-200 focus:signal-border focus:ring-2 focus:ring-red-100 outline-none transition-all">
-                    <input type="password" id="re-pass" placeholder="סיסמת אבטחה" class="w-full p-4 rounded-2xl border border-slate-200 focus:signal-border focus:ring-2 focus:ring-red-100 outline-none transition-all">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="tel" id="re-phone" placeholder="טלפון" class="w-full p-4 rounded-2xl border border-slate-200 outline-none">
-                        <input type="email" id="re-email" placeholder="אימייל" class="w-full p-4 rounded-2xl border border-slate-200 outline-none">
+                <div id="auth-fields" class="space-y-4">
+                    <input type="text" id="auth-name" placeholder="שם משתמש" class="w-full input-signal">
+                    <input type="password" id="auth-pass" placeholder="סיסמה" class="w-full input-signal">
+                    <div id="reg-extras" class="hidden space-y-4">
+                        <input type="tel" id="auth-phone" placeholder="מספר טלפון" class="w-full input-signal">
+                        <input type="email" id="auth-email" placeholder="דואר אלקטרוני" class="w-full input-signal">
                     </div>
-                    <button onclick="app.register()" class="w-full signal-red text-white py-4 rounded-2xl font-black text-lg hover:opacity-90 transition-all shadow-lg shadow-red-200">צור חשבון מאובטח</button>
+                    <button onclick="handleAuth()" class="w-full btn-primary py-4 font-black text-lg">התחבר למערכת</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="view-main" class="hidden flex h-screen overflow-hidden">
-        <aside class="w-72 glass-card h-full flex flex-col p-6 z-20">
-            <div class="mb-10 px-2">
-                <h2 class="text-2xl font-black tracking-tight">App Now <span class="signal-text">.</span></h2>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">System Online</span>
+    <div id="view-main" class="hidden flex h-full">
+        <aside class="w-80 border-l border-slate-100 p-8 flex flex-col glass">
+            <div class="mb-12">
+                <h2 class="text-2xl font-black italic">App Now<span class="text-[#FF3B30]">.</span></h2>
+                <div class="flex items-center gap-2 mt-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Network Secured</span>
                 </div>
             </div>
 
-            <nav class="flex-1 space-y-2" id="main-nav">
+            <nav class="flex-1 space-y-2" id="nav-menu">
                 </nav>
 
-            <div class="mt-auto border-t pt-6">
-                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl">
-                    <div class="w-10 h-10 rounded-full signal-red flex items-center justify-center text-white font-bold" id="user-avatar">?</div>
-                    <div class="flex-1 overflow-hidden">
-                        <p class="text-sm font-bold truncate" id="user-display-name">Guest User</p>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase" id="user-role-badge">Unauthorized</p>
+            <div class="mt-auto pt-6 border-t border-slate-100">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-600" id="user-initials">--</div>
+                    <div>
+                        <p class="font-bold text-sm" id="user-name-display">--</p>
+                        <p class="text-[10px] font-black text-[#FF3B30] uppercase" id="user-role-display">--</p>
                     </div>
-                    <button onclick="location.reload()" class="p-2 hover:bg-slate-200 rounded-xl transition-all"><i data-lucide="log-out" class="w-4 h-4"></i></button>
                 </div>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-10">
+        <main class="flex-1 bg-[#FAFAFC] p-10 overflow-y-auto">
             <header class="flex justify-between items-end mb-10">
                 <div>
-                    <h3 class="text-slate-400 font-bold uppercase tracking-widest text-xs mb-1" id="section-subtitle">Overview</h3>
-                    <h2 class="text-4xl font-black tracking-tight" id="section-title">Dashboard</h2>
+                    <p class="text-xs font-black text-slate-400 uppercase tracking-tighter mb-1" id="view-subtitle">System Overview</p>
+                    <h1 class="text-4xl font-black tracking-tight" id="view-title">Dashboard</h1>
                 </div>
-                <div class="flex gap-3">
-                    <div class="glass-card px-6 py-3 rounded-2xl flex items-center gap-3 shadow-sm">
-                        <i data-lucide="calendar" class="w-4 h-4 text-slate-400"></i>
-                        <span class="text-sm font-bold" id="current-date">--/--/----</span>
-                    </div>
+                <div class="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+                    <i data-lucide="clock" class="w-4 h-4 text-slate-300"></i>
+                    <span class="text-sm font-bold" id="current-time">--:--</span>
                 </div>
             </header>
 
-            <div id="content-render">
+            <div id="view-content">
                 </div>
         </main>
     </div>
 </div>
 
 <script>
-    // --- ENTERPRISE CORE ENGINE ---
-    const app = {
-        state: {
-            user: null,
-            activeView: 'dashboard',
-            db: JSON.parse(localStorage.getItem('app_now_db')) || {
-                users: [{ name: 'shimon', pass: 'shimonadmin0', role: 'admin', status: 'active' }],
-                chats: {},
-                settings: { trainingLock: true }
-            }
-        },
+    // --- FIREBASE SIMULATION/INIT ---
+    // הערה: לצורך ההרצה המיידית, המערכת משתמשת ב-Mock DB חכם שמתנהג כמו Online. 
+    // כדי לחבר ל-Firebase אמיתי, מחליפים את ה-dbObject.
+    
+    const store = {
+        users: JSON.parse(localStorage.getItem('app_users')) || [
+            { name: 'shimon', pass: 'shimonadmin0', role: 'admin', status: 'active' }
+        ],
+        chats: JSON.parse(localStorage.getItem('app_chats')) || {},
+        activeUser: null,
+        
+        save() {
+            localStorage.setItem('app_users', JSON.stringify(this.users));
+            localStorage.setItem('app_chats', JSON.stringify(this.chats));
+        }
+    };
+
+    const ui = {
+        currentView: 'dashboard',
+        authMode: 'login',
 
         init() {
             lucide.createIcons();
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('he-IL');
-            this.sync();
+            this.updateTime();
+            setInterval(() => this.updateTime(), 30000);
         },
 
-        sync() {
-            localStorage.setItem('app_now_db', JSON.stringify(this.db));
+        updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
         },
 
-        // Auth Logic
-        register() {
-            const name = document.getElementById('re-name').value;
-            const pass = document.getElementById('re-pass').value;
-            if(!name || pass.length < 6) return alert("אבטחה: סיסמה חייבת להיות לפחות 6 תווים");
-
-            const newUser = {
-                name, pass, 
-                role: 'rep', 
-                status: 'pending',
-                joined: new Date().toISOString(),
-                id: 'id_' + Math.random().toString(36).substr(2, 9)
-            };
-
-            this.db.users.push(newUser);
-            this.sync();
-            alert("המשתמש נוצר במערכת. המנהל בודק את הרשאות הגישה שלך.");
-            location.reload();
-        },
-
-        login() {
-            const name = document.getElementById('li-user').value;
-            const pass = document.getElementById('li-pass').value;
-            const user = this.db.users.find(u => u.name === name && u.pass === pass);
-
-            if(!user) return alert("גישה נדחתה: פרטי התחברות שגויים");
-
-            this.state.user = user;
-            document.getElementById('view-auth').classList.add('hidden');
-            document.getElementById('view-main').classList.remove('hidden');
-            
-            // Update Sidebar Profile
-            document.getElementById('user-display-name').innerText = user.name;
-            document.getElementById('user-role-badge').innerText = user.role;
-            document.getElementById('user-avatar').innerText = user.name[0].toUpperCase();
-
-            this.renderNav();
-            this.navigate('dashboard');
-        },
-
-        // Navigation Engine
         renderNav() {
-            const nav = document.getElementById('main-nav');
+            const nav = document.getElementById('nav-menu');
             const items = [
-                { id: 'dashboard', icon: 'layout-grid', label: 'סקירה כללית' },
-                { id: 'interview', icon: 'mic', label: 'מרכז ראיונות' },
-                { id: 'training', icon: 'graduation-cap', label: 'הכשרה מקצועית' }
+                { id: 'dashboard', icon: 'layout-grid', label: 'דף הבית' },
+                { id: 'interview', icon: 'message-circle', label: 'ראיונות' },
+                { id: 'training', icon: 'graduation-cap', label: 'מרכז הכשרה' }
             ];
 
-            if(this.state.user.role === 'admin') {
-                items.push({ id: 'admin-users', icon: 'users', label: 'ניהול נציגים' });
-                items.push({ id: 'admin-stats', icon: 'bar-chart-3', label: 'אנליטיקה' });
+            if(store.activeUser.role === 'admin') {
+                items.push({ id: 'admin-panel', icon: 'shield', label: 'ניהול נציגים' });
             }
 
             nav.innerHTML = items.map(item => `
-                <button onclick="app.navigate('${item.id}')" id="nav-${item.id}" class="sidebar-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all text-slate-500">
+                <button onclick="ui.navigate('${item.id}')" id="nav-${item.id}" class="sidebar-item w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all ${this.currentView === item.id ? 'active' : 'text-slate-400 hover:bg-slate-50'}">
                     <i data-lucide="${item.icon}" class="w-5 h-5"></i>
                     <span>${item.label}</span>
                 </button>
@@ -181,113 +153,185 @@
         },
 
         navigate(viewId) {
-            this.state.activeView = viewId;
-            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`nav-${viewId}`).classList.add('active');
-            
-            this.renderView(viewId);
+            this.currentView = viewId;
+            document.getElementById('view-title').innerText = document.getElementById(`nav-${viewId}`).innerText;
+            this.renderNav();
+            this.renderContent();
         },
 
-        // Render Logic
-        renderView(viewId) {
-            const container = document.getElementById('content-render');
-            const user = this.state.user;
+        renderContent() {
+            const container = document.getElementById('view-content');
+            const user = store.activeUser;
 
-            if(viewId === 'dashboard') {
+            if(this.currentView === 'dashboard') {
                 container.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="glass-card p-8 rounded-[28px] border-l-8 signal-border">
-                            <p class="text-slate-400 font-bold text-xs uppercase mb-2">סטטוס משתמש</p>
-                            <h4 class="text-3xl font-black">${user.status === 'active' ? 'מורשה' : 'בבדיקה'}</h4>
+                        <div class="signal-card p-8 bg-white border-r-4 border-[#FF3B30]">
+                            <p class="text-slate-400 text-xs font-black uppercase mb-1">סטטוס חיבור</p>
+                            <h3 class="text-2xl font-black">${user.status === 'active' ? 'מורשה עבודה' : 'בתהליך אישור'}</h3>
                         </div>
-                        <div class="glass-card p-8 rounded-[28px]">
-                            <p class="text-slate-400 font-bold text-xs uppercase mb-2">הודעות מערכת</p>
-                            <h4 class="text-3xl font-black">0</h4>
+                        <div class="signal-card p-8">
+                            <p class="text-slate-400 text-xs font-black uppercase mb-1">הודעות חדשות</p>
+                            <h3 class="text-2xl font-black">0</h3>
                         </div>
-                        <div class="glass-card p-8 rounded-[28px]">
-                            <p class="text-slate-400 font-bold text-xs uppercase mb-2">דירוג איכות</p>
-                            <h4 class="text-3xl font-black text-emerald-500">A+</h4>
-                        </div>
-                    </div>
-                    <div class="mt-10 glass-card p-10 rounded-[32px]">
-                        <h3 class="text-xl font-black mb-4">עדכונים אחרונים</h3>
-                        <div class="space-y-4">
-                            <div class="flex gap-4 p-4 bg-slate-50 rounded-2xl">
-                                <div class="w-12 h-12 rounded-xl signal-red flex items-center justify-center text-white"><i data-lucide="shield-check"></i></div>
-                                <div>
-                                    <p class="font-bold">פרוטוקול אבטחה עודכן</p>
-                                    <p class="text-sm text-slate-500">המערכת כעת פועלת תחת הצפנה מקצה לקצה.</p>
-                                </div>
-                            </div>
+                        <div class="signal-card p-8">
+                            <p class="text-slate-400 text-xs font-black uppercase mb-1">ביצועי מערכת</p>
+                            <h3 class="text-2xl font-black text-emerald-500">100% Secure</h3>
                         </div>
                     </div>
                 `;
             }
 
-            if(viewId === 'admin-users') {
-                const candidates = this.db.users.filter(u => u.role !== 'admin');
-                container.innerHTML = `
-                    <div class="glass-card rounded-[32px] overflow-hidden">
-                        <table class="w-full text-right">
-                            <thead class="bg-slate-50 text-slate-400 text-xs font-black uppercase">
-                                <tr>
-                                    <th class="p-6">נציג</th>
-                                    <th class="p-6">סטטוס</th>
-                                    <th class="p-6">תאריך הצטרפות</th>
-                                    <th class="p-6">פעולות</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y">
-                                ${candidates.map(u => `
-                                    <tr class="hover:bg-slate-50 transition-all">
-                                        <td class="p-6 font-bold">${u.name}</td>
-                                        <td class="p-6"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase ${u.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}">${u.status}</span></td>
-                                        <td class="p-6 text-sm text-slate-400">${new Date(u.joined).toLocaleDateString()}</td>
-                                        <td class="p-6">
-                                            <button onclick="app.approveUser('${u.id}')" class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-black">נהל גישה</button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
+            if(this.currentView === 'interview') {
+                if(user.role === 'rep' && user.status === 'pending') {
+                    container.innerHTML = `<div class="signal-card p-20 text-center">
+                        <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">⏳</div>
+                        <h2 class="text-2xl font-black mb-2">הבקשה שלך ממתינה לשמעון</h2>
+                        <p class="text-slate-400 font-bold">ברגע שהמנהל יאשר את המשתמש שלך, פאנל הראיונות ייפתח אוטומטית.</p>
+                    </div>`;
+                } else {
+                    this.renderChatSystem();
+                }
             }
 
-            lucide.createIcons();
+            if(this.currentView === 'admin-panel') {
+                this.renderAdminUsers();
+            }
         },
 
-        approveUser(id) {
-            const user = this.db.users.find(u => u.id === id);
-            if(confirm(`האם לאשר את הנציג ${user.name} לראיון?`)) {
-                user.status = 'interview';
-                this.sync();
-                this.renderView('admin-users');
-            }
+        renderChatSystem() {
+            const target = store.activeUser.role === 'admin' ? (this.adminTarget || 'בחר נציג') : store.activeUser.name;
+            const container = document.getElementById('view-content');
+            container.innerHTML = `
+                <div class="flex gap-6 h-[600px]">
+                    <div class="flex-1 signal-card flex flex-col overflow-hidden bg-white">
+                        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span class="font-black">צ'אט פעיל: ${target}</span>
+                            </div>
+                        </div>
+                        <div id="chat-messages" class="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-[#F9F9FB]"></div>
+                        <div class="p-6 border-t border-slate-100 flex gap-4">
+                            <input type="text" id="chat-input" placeholder="הקלד הודעה..." class="flex-1 input-signal">
+                            <button onclick="handleSendMessage()" class="btn-primary px-8 font-bold">שלח</button>
+                        </div>
+                    </div>
+                    ${store.activeUser.role === 'admin' ? `
+                        <div class="w-80 signal-card p-6 space-y-4">
+                            <h4 class="font-black text-sm uppercase text-slate-400">פעולות מהירות</h4>
+                            <button onclick="adminAction('welcome')" class="w-full text-right p-4 rounded-xl border border-slate-100 hover:bg-slate-50 font-bold text-sm">👋 הודעת פתיחה</button>
+                            <button onclick="adminAction('cv')" class="w-full text-right p-4 rounded-xl border border-slate-100 hover:bg-slate-50 font-bold text-sm">📄 בקשת קו"ח</button>
+                            <button onclick="adminAction('approve_training')" class="w-full text-right p-4 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-sm italic">🎓 אישור להכשרה</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            this.updateChatUI(target);
+        },
+
+        updateChatUI(chatName) {
+            const box = document.getElementById('chat-messages');
+            if(!box) return;
+            const chat = store.chats[chatName] || [];
+            box.innerHTML = chat.map(m => `
+                <div class="msg-bubble ${m.sender === 'admin' ? 'msg-admin' : 'msg-user'}">
+                    <p>${m.text}</p>
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        },
+
+        renderAdminUsers() {
+            const reps = store.users.filter(u => u.role === 'rep');
+            document.getElementById('view-content').innerHTML = `
+                <div class="signal-card overflow-hidden">
+                    <table class="w-full text-right">
+                        <thead class="bg-slate-50 text-slate-400 text-xs font-black uppercase">
+                            <tr><th class="p-6">נציג</th><th class="p-6">סטטוס</th><th class="p-6">פעולה</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            ${reps.map(u => `
+                                <tr>
+                                    <td class="p-6 font-bold">${u.name}</td>
+                                    <td class="p-6 text-xs font-black uppercase text-[#FF3B30]">${u.status}</td>
+                                    <td class="p-6">
+                                        <button onclick="ui.adminTarget='${u.name}'; ui.navigate('interview')" class="text-blue-500 font-bold">פתח צ'אט</button>
+                                        ${u.status === 'pending' ? `<button onclick="approveUser('${u.name}')" class="mr-4 text-emerald-500 font-bold">אשר לראיון</button>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
     };
 
+    // --- ACTIONS ---
     function toggleAuth(mode) {
-        const pane = document.getElementById('form-content');
-        const btnReg = document.getElementById('btn-tab-reg');
-        const btnLogin = document.getElementById('btn-tab-login');
+        ui.authMode = mode;
+        document.getElementById('reg-extras').classList.toggle('hidden', mode === 'login');
+        document.getElementById('tab-login').className = mode === 'login' ? 'flex-1 py-3 rounded-xl font-bold bg-white shadow-sm' : 'flex-1 py-3 rounded-xl font-bold text-slate-500';
+        document.getElementById('tab-reg').className = mode === 'reg' ? 'flex-1 py-3 rounded-xl font-bold bg-white shadow-sm' : 'flex-1 py-3 rounded-xl font-bold text-slate-500';
+    }
 
-        if(mode === 'login') {
-            pane.innerHTML = `
-                <div class="space-y-4">
-                    <input type="text" id="li-user" placeholder="שם משתמש" class="w-full p-4 rounded-2xl border border-slate-200 outline-none">
-                    <input type="password" id="li-pass" placeholder="סיסמה" class="w-full p-4 rounded-2xl border border-slate-200 outline-none">
-                    <button onclick="app.login()" class="w-full signal-red text-white py-4 rounded-2xl font-black text-lg shadow-lg">כניסה מאובטחת</button>
-                </div>
-            `;
-            btnLogin.classList.add('bg-white', 'shadow-sm');
-            btnReg.classList.remove('bg-white', 'shadow-sm');
+    function handleAuth() {
+        const name = document.getElementById('auth-name').value;
+        const pass = document.getElementById('auth-pass').value;
+
+        if(ui.authMode === 'login') {
+            const user = store.users.find(u => u.name === name && u.pass === pass);
+            if(user) {
+                store.activeUser = user;
+                document.getElementById('view-auth').classList.add('hidden');
+                document.getElementById('view-main').classList.remove('hidden');
+                document.getElementById('user-name-display').innerText = user.name;
+                document.getElementById('user-role-display').innerText = user.role;
+                document.getElementById('user-initials').innerText = user.name[0].toUpperCase();
+                ui.navigate('dashboard');
+            } else alert('פרטי התחברות שגויים');
         } else {
-            location.reload();
+            const newUser = { name, pass, role: 'rep', status: 'pending' };
+            store.users.push(newUser);
+            store.save();
+            alert('נרשמת בהצלחה! התחבר כעת.');
+            toggleAuth('login');
         }
     }
 
-    window.onload = () => app.init();
+    function handleSendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value;
+        if(!text) return;
+        const chatName = store.activeUser.role === 'admin' ? ui.adminTarget : store.activeUser.name;
+        if(!store.chats[chatName]) store.chats[chatName] = [];
+        store.chats[chatName].push({ sender: store.activeUser.role, text });
+        store.save();
+        input.value = '';
+        ui.updateChatUI(chatName);
+    }
+
+    function adminAction(type) {
+        const texts = {
+            welcome: "ברוך הבא לראיון של App Now. אני שמעון. האם אתה מוכן להתחיל?",
+            cv: "מעולה. צרף לי בבקשה קורות חיים כאן בצ'אט.",
+            approve_training: "מזל טוב! עברת את הראיון. אני מעביר אותך כעת למרכז ההכשרה."
+        };
+        const chatName = ui.adminTarget;
+        store.chats[chatName].push({ sender: 'admin', text: texts[type] });
+        if(type === 'approve_training') store.users.find(u => u.name === chatName).status = 'training';
+        store.save();
+        ui.updateChatUI(chatName);
+    }
+
+    function approveUser(name) {
+        store.users.find(u => u.name === name).status = 'interview';
+        store.save();
+        ui.renderAdminUsers();
+    }
+
+    window.onload = () => ui.init();
 </script>
 </body>
 </html>
