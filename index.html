@@ -3,439 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Now | Ultimate Command Center</title>
+    <title>App Now | Command & Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;300;400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #FF3B30;
-            --bg: #FFFFFF;
-            --surface: #F2F2F7;
+            --bg: #F2F2F7;
+            --card: #FFFFFF;
             --text: #1C1C1E;
             --text-dim: #8E8E93;
             --border: #E5E5EA;
             --success: #34C759;
-            --shadow: 0 15px 35px rgba(0,0,0,0.06);
             --radius: 28px;
+            --shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            margin: 0; font-family: 'Heebo', sans-serif; background: var(--surface); color: var(--text); 
-            height: 100vh; overflow: hidden;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { margin: 0; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* --- Layout & Navigation --- */
-        .app-container { height: 100vh; display: flex; flex-direction: column; }
-        .view { display: none; flex: 1; overflow-y: auto; padding: 20px; animation: fadeIn 0.4s ease-out; }
-        .view.active { display: flex; flex-direction: column; }
+        /* --- UI Engine --- */
+        .view { display: none; height: 100vh; overflow-y: auto; padding: 20px; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- Components --- */
-        .card { 
-            background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border);
-            box-shadow: var(--shadow); padding: 30px; width: 100%; max-width: 500px; margin: 20px auto; 
-        }
+        .panel { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 25px; width: 100%; max-width: 500px; margin: 20px auto; position: relative; }
+        
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 16px; border-radius: 18px; border: 1px solid var(--border); background: #F9F9F9; font-size: 1rem; transition: 0.3s; }
+        input:focus { border-color: var(--primary); background: #FFF; }
 
-        .input-field {
-            width: 100%; padding: 16px 20px; border-radius: 20px; border: 1px solid var(--border);
-            background: #F9F9F9; font-size: 1rem; margin-bottom: 12px; outline: none; transition: 0.3s;
-        }
-        .input-field:focus { border-color: var(--primary); background: #FFF; box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1); }
-
-        .btn {
-            width: 100%; padding: 18px; border-radius: 22px; border: none; font-size: 1.1rem;
-            font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
+        .btn { width: 100%; padding: 18px; border-radius: 20px; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { opacity: 0.9; }
         .btn-primary:active { transform: scale(0.97); }
-        .btn-secondary { background: #E5E5EA; color: var(--text); }
+        .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
 
-        /* --- Chat UI --- */
-        .chat-area { flex: 1; background: #FAFAFA; border-radius: 24px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; margin-bottom: 15px; }
-        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 12px 18px; border-radius: 22px; max-width: 80%; font-size: 0.95rem; position: relative; word-wrap: break-word; }
+        /* --- Live Components --- */
+        .pulse { width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulseAni 1.5s infinite; }
+        @keyframes pulseAni { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+
+        /* --- Chat System --- */
+        .chat-container { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 15px; background: #FAFAFA; border-radius: 20px; border: 1px solid var(--border); }
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 85%; font-size: 0.95rem; line-height: 1.4; }
         .msg.admin { background: white; align-self: flex-start; border-bottom-right-radius: 4px; border: 1px solid var(--border); }
         .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-left-radius: 4px; }
-        .msg img { max-width: 100%; border-radius: 12px; margin-top: 8px; border: 1px solid rgba(0,0,0,0.1); }
-        
-        .chat-input-row { display: flex; gap: 10px; padding: 15px; background: white; border-top: 1px solid var(--border); }
-        .task-bar { display: flex; gap: 8px; padding: 10px; overflow-x: auto; background: #FFF; border-bottom: 1px solid var(--border); }
-        .task-chip { padding: 8px 15px; border-radius: 50px; background: #007AFF; color: white; border: none; font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
 
-        /* --- Training & Videos --- */
-        .video-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 20px; overflow: hidden; margin-bottom: 15px; }
-        .video-container iframe { width: 100%; height: 100%; border: none; }
+        .task-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .btn-task { padding: 10px; font-size: 0.8rem; background: #007AFF; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        /* --- Training View --- */
+        .video-box { width: 100%; aspect-ratio: 16/9; border-radius: 20px; overflow: hidden; background: #000; margin-bottom: 15px; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* --- Blur Locked Overlay --- */
+        .locked-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); z-index: 100; border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
         /* --- Admin Specific --- */
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .badge { padding: 4px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 900; }
+        .admin-card { background: white; padding: 15px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; }
         .badge-pending { background: #FF9500; color: white; }
         .badge-interview { background: #007AFF; color: white; }
-        .badge-active { background: #34C759; color: white; }
 
-        /* --- Overlays --- */
-        .blur-lock { 
-            position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); 
-            z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px;
-        }
-
-        .pulse { width: 12px; height: 12px; background: var(--success); border-radius: 50%; animation: pulseAni 1.5s infinite; }
-        @keyframes pulseAni { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+        /* --- Loader --- */
+        .loader { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    
-    <div id="view-auth" class="view active">
-        <div class="card">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="font-weight: 900; font-size: 2.2rem; margin: 0;">App Now <span style="color: var(--primary);">Network</span></h1>
-                <p style="color: var(--text-dim);">מרכז ניהול נציגי שירות לקוחות 💼</p>
-            </div>
-            
-            <div id="auth-toggle" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button class="btn btn-secondary" style="flex:1" onclick="switchAuth('login')">התחברות 🔑</button>
-                <button class="btn btn-primary" style="flex:1" onclick="switchAuth('reg')">הרשמה 🚀</button>
-            </div>
-
-            <div id="form-login" style="display: none;">
-                <input type="text" id="li-user" class="input-field" placeholder="שם משתמש">
-                <input type="password" id="li-pass" class="input-field" placeholder="סיסמה">
-                <button class="btn btn-primary" onclick="app.login()">כניסה למערכת 🔒</button>
-            </div>
-
-            <div id="form-reg">
-                <div style="background: #FFF5F5; padding: 12px; border-radius: 15px; margin-bottom: 15px; color: var(--primary); font-size: 0.9rem; font-weight: 700; text-align: center;">
-                    ⚡ הזדמנות: נציגי שירות מהבית! הכשרה מלאה בזום.
-                </div>
-                <input type="text" id="re-name" class="input-field" placeholder="שם מלא 👤">
-                <input type="password" id="re-pass" class="input-field" placeholder="סיסמה 🔒">
-                <input type="tel" id="re-phone" class="input-field" placeholder="טלפון 📱">
-                <input type="email" id="re-email" class="input-field" placeholder="אימייל ✉️">
-                <input type="date" id="re-dob" class="input-field">
-                <button class="btn btn-primary" id="reg-btn" onclick="app.register()">הירשם להכשרה עכשיו ✨</button>
-            </div>
-        </div>
+<div id="view-auth" class="view active">
+    <div style="text-align: center; margin-top: 40px;">
+        <h1 style="font-weight: 900; font-size: 2.5rem; letter-spacing: -1.5px; margin-bottom: 0;">App Now <span style="color:var(--primary)">Service</span></h1>
+        <p style="color: var(--text-dim);">מרכז הגיוס וההכשרה הרשמי 🚀</p>
     </div>
 
-    <div id="view-pending" class="view">
-        <div class="card" style="text-align: center; padding: 60px 30px;">
-            <div style="font-size: 4rem;">⏳</div>
-            <h2>הבקשה בתהליך בחינה</h2>
-            <p style="color: var(--text-dim);">שמעון (מנהל המערכת) בוחן את הפרטים שלך. תקבל הודעה ברגע שהמשתמש יאושר לראיון אונליין.</p>
-            <button class="btn btn-secondary" onclick="location.reload()">בדוק סטטוס 🔄</button>
+    <div class="panel">
+        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+            <button class="btn btn-secondary" onclick="toggleAuth('login')" id="tab-login">התחברות 🔑</button>
+            <button class="btn btn-secondary" onclick="toggleAuth('register')" id="tab-register" style="border-color: var(--primary);">הצטרפות ✨</button>
+        </div>
+
+        <div id="pane-register">
+            <div style="background: #FFF5F5; padding: 15px; border-radius: 18px; margin-bottom: 20px; border: 1px solid #FFEBEB;">
+                <p style="margin:0; font-weight: 700; color: var(--primary); font-size: 0.95rem;">רוצים להיות נציגי שירות של App Now? 🎧</p>
+                <p style="margin:5px 0 0 0; font-size: 0.85rem; color: #666;">הכשרה חכמה בזום, פאנל ניהול מתקדם ותחילת עבודה מיידית!</p>
+            </div>
+            <div class="input-group"><input type="text" id="re-name" placeholder="שם מלא 👤"></div>
+            <div class="input-group"><input type="password" id="re-pass" placeholder="סיסמה 🔒"></div>
+            <div class="input-group"><input type="tel" id="re-phone" placeholder="טלפון 📱"></div>
+            <div class="input-group"><input type="email" id="re-email" placeholder="מייל ✉️"></div>
+            <div class="input-group"><input type="date" id="re-dob" title="תאריך לידה"></div>
+            <button class="btn btn-primary" onclick="app.register()" id="btn-reg">
+                <span id="reg-label">הירשם להכשרה ✨</span>
+                <div class="loader" id="reg-loader"></div>
+            </button>
+        </div>
+
+        <div id="pane-login" style="display: none;">
+            <div class="input-group"><input type="text" id="li-user" placeholder="שם משתמש"></div>
+            <div class="input-group"><input type="password" id="li-pass" placeholder="סיסמה"></div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.9rem;">
+                <input type="checkbox" id="rem" style="width: 20px; height: 20px; border-radius: 6px;"> זכור את הפרטים שלי
+            </div>
+            <button class="btn btn-primary" onclick="app.login()">התחבר לפאנל 🔓</button>
         </div>
     </div>
+</div>
 
-    <div id="view-interview" class="view">
-        <div class="card" style="max-width: 600px; height: 90vh; position: relative; display: flex; flex-direction: column;">
-            <div id="interview-lock" class="blur-lock">
-                <h2 style="margin: 0;">הצטרפותך אושרה! 🎉</h2>
-                <p>הפאנל נעול זמנית לראיון בלבד. לחץ להתחלה:</p>
-                <button class="btn btn-primary" onclick="app.repStartInterview()">
-                    <div class="pulse"></div> התחל ראיון אונליין
-                </button>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px;">
-                <div style="display: flex; align-items: center; gap: 10px; font-weight: 900;">
-                    <div class="pulse"></div> ראיון חי: שמעון המנהל
-                </div>
-                <button class="btn btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8rem;" onclick="app.logout()">התנתק</button>
-            </div>
+<div id="view-pending" class="view">
+    <div class="panel" style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 4rem; margin-bottom: 20px;">⏳</div>
+        <h2>הבקשה בבדיקה</h2>
+        <p style="color: var(--text-dim);">המנהל בוחן את בקשת ההצטרפות שלך. נודיע לך מיד כשהמשתמש יאושר ונוכל להתקדם לראיון.</p>
+        <button class="btn btn-secondary" onclick="location.reload()">בדוק סטטוס 🔄</button>
+    </div>
+</div>
 
-            <div class="chat-area">
-                <div class="messages" id="int-messages"></div>
-                <div class="chat-input-row">
-                    <button class="btn btn-secondary" style="width: 50px; padding: 0;" onclick="document.getElementById('file-up').click()">📎</button>
-                    <input type="file" id="file-up" style="display: none;" onchange="app.handleUpload(event)">
-                    <input type="text" id="int-input" class="input-field" style="margin:0" placeholder="הקלד הודעה...">
-                    <button class="btn btn-primary" style="width: 60px; padding: 0;" onclick="app.sendMsg()">➤</button>
-                </div>
+<div id="view-interview" class="view">
+    <div class="panel" style="max-width: 600px; height: 90vh; display: flex; flex-direction: column;">
+        
+        <div id="interview-lock" class="locked-overlay" style="display: none;">
+            <h2 style="margin: 0;">ההצטרפות אושרה! 🎉</h2>
+            <p>הוקם לך משתמש במערכת. כדי להמשיך, עליך לעבור ראיון אונליין.</p>
+            <button class="btn btn-primary" onclick="app.repStartInterview()">
+                <div class="pulse"></div> התחל ראיון אונליין
+            </button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px; font-weight: 900;">
+                <div class="pulse" id="live-dot"></div> ראיון חי: שמעון המנהל
+            </div>
+            <button class="btn btn-secondary" style="width: auto; padding: 5px 15px; font-size: 0.8rem;" onclick="app.logout()">התנתק</button>
+        </div>
+
+        <div class="chat-container" id="chat-box"></div>
+
+        <div id="admin-tasks" style="display: none; padding-top: 15px; border-top: 1px solid var(--border); margin-top: 15px;">
+            <p style="font-size: 0.7rem; font-weight: 900; color: var(--primary); margin-bottom: 8px;">שלח משימת ראיון:</p>
+            <div class="task-grid">
+                <button class="btn-task" onclick="app.adminTask('welcome')">👋 ברוך הבא</button>
+                <button class="btn-task" onclick="app.adminTask('cv')">📄 קורות חיים</button>
+                <button class="btn-task" onclick="app.adminTask('id')">🆔 תעודת זהות</button>
+                <button class="btn-task" onclick="app.adminTask('finish')" style="background: var(--success);">🎓 סיום והכשרה</button>
             </div>
         </div>
-    </div>
 
-    <div id="view-training" class="view">
-        <div class="card" style="max-width: 700px;">
-            <h1 style="font-weight: 900;">מרכז הכשרה נציגים 🎓</h1>
-            <p style="color: var(--text-dim);">סיים את הצפייה בסרטונים כדי לקבל גישה למערכת הצא'טים.</p>
-            
-            <div id="training-list">
-                </div>
-
-            <div id="training-footer" style="text-align: center; padding-top: 20px; border-top: 1px solid var(--border);">
-                <p id="training-status-text" style="font-weight: 700; color: var(--primary);">צפה בסרטון כדי להתקדם...</p>
-                <button id="btn-finish-training" class="btn btn-primary" style="display: none;" onclick="app.completeTraining()">סיימתי הכשרה - בקש הרשאת עבודה ✅</button>
-            </div>
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+            <button class="btn btn-secondary" style="width: 50px; padding: 0;" onclick="document.getElementById('file-up').click()">📎</button>
+            <input type="file" id="file-up" style="display: none;" onchange="app.uploadFile(event)">
+            <input type="text" id="chat-in" style="margin: 0;" placeholder="הקלד הודעה...">
+            <button class="btn btn-primary" style="width: 60px; padding: 0;" onclick="app.sendMsg()">➤</button>
         </div>
     </div>
+</div>
 
-    <div id="view-admin" class="view">
-        <div style="max-width: 1100px; margin: 0 auto; width: 100%;">
-            <div class="admin-header">
-                <h1 style="font-weight: 900; font-size: 2.2rem;">ניהול <span style="color:var(--primary)">App Now</span> 👑</h1>
-                <button class="btn btn-secondary" style="width: auto; padding: 10px 20px;" onclick="app.logout()">התנתק 🚪</button>
+<div id="view-training" class="view">
+    <div class="panel" style="max-width: 800px;">
+        <h1 style="font-weight: 900;">מרכז ההכשרה 🎓</h1>
+        <p style="color: var(--text-dim);">צפה בסרטונים עד הסוף כדי לקבל גישה למערכת הצ'אט.</p>
+        <div id="video-list"></div>
+    </div>
+</div>
+
+<div id="view-admin" class="view">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1 style="font-weight: 900; font-size: 2.2rem;">ניהול <span style="color:var(--primary)">App Now</span></h1>
+            <button class="btn btn-secondary" style="width: auto; padding: 10px 20px;" onclick="app.logout()">התנתק 🚪</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3>בקשות הצטרפות (ממתינים) 📩</h3>
+                <div id="admin-pending-list"></div>
             </div>
-
-            <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
-                <div>
-                    <div class="card" style="margin: 0; padding: 20px; max-width: 100%;">
-                        <h3 style="margin-top: 0;">בקשות ומועמדים</h3>
-                        <div id="admin-user-list">
-                            </div>
-                    </div>
-                </div>
-
-                <div id="admin-main-panel">
-                    <div class="card" style="margin: 0; max-width: 100%; height: 80vh; display: flex; flex-direction: column;">
-                        <div id="admin-empty-state" style="text-align: center; padding: 50px;">
-                            <div style="font-size: 3rem;">🖱️</div>
-                            <h3>בחר מועמד מהרשימה</h3>
-                        </div>
-                        
-                        <div id="admin-chat-view" style="display: none; flex-direction: column; height: 100%;">
-                            <div style="margin-bottom: 10px; font-weight: 900; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-                                צ'אט עם: <span id="admin-active-name" style="color: var(--primary);">---</span>
-                            </div>
-                            
-                            <div class="task-bar" id="admin-tasks">
-                                <button class="task-chip" onclick="app.adminTask('welcome')">👋 פתיחה</button>
-                                <button class="task-chip" onclick="app.adminTask('cv')">📄 בקשת קו"ח</button>
-                                <button class="task-chip" onclick="app.adminTask('id')">🆔 בקשת ת.ז</button>
-                                <button class="task-chip" onclick="app.adminTask('approve_training')" style="background: var(--success);">🎓 אישור להכשרה</button>
-                            </div>
-
-                            <div class="chat-area">
-                                <div class="messages" id="admin-messages"></div>
-                                <div class="chat-input-row">
-                                    <input type="text" id="admin-input" class="input-field" style="margin:0" placeholder="הקלד הודעה חופשית...">
-                                    <button class="btn btn-primary" style="width: 60px; padding: 0;" onclick="app.adminSendMsg()">➤</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div>
+                <h3>ראיונות והכשרות 🎙️</h3>
+                <div id="admin-active-list"></div>
             </div>
         </div>
-    </div>
 
+        <div class="panel" style="max-width: 100%; margin-top: 40px;">
+            <h3>הקמת סרטון הכשרה חדש 🎬</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 100px; gap: 10px;">
+                <input type="text" id="v-title" placeholder="כותרת הסרטון">
+                <input type="text" id="v-url" placeholder="קישור יוטיוב (Embed)">
+                <input type="number" id="v-time" placeholder="שניות">
+            </div>
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="app.addVideo()">הוסף סרטון למערכת ➕</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    // --- DATABASE & STATE ---
+    // --- DATABASE & LOGIC ---
     const app = {
         db: {
-            users: JSON.parse(localStorage.getItem('an_users')) || [
-                { name: 'shimon', pass: 'shimonadmin0', role: 'admin' }
-            ],
+            users: JSON.parse(localStorage.getItem('an_users')) || [{ name: 'shimon', pass: 'shimonadmin0', role: 'admin' }],
             chats: JSON.parse(localStorage.getItem('an_chats')) || {},
-            training: JSON.parse(localStorage.getItem('an_training')) || [
-                { id: 1, title: 'מבוא למערכת App Now', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', duration: 5 }
+            videos: JSON.parse(localStorage.getItem('an_videos')) || [
+                { title: 'הכרת המערכת', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', time: 5 }
             ]
         },
-        state: {
-            current: null,
-            activeAdminTarget: null
-        },
+        state: { user: null, target: null },
 
         save() {
             localStorage.setItem('an_users', JSON.stringify(this.db.users));
             localStorage.setItem('an_chats', JSON.stringify(this.db.chats));
-            localStorage.setItem('an_training', JSON.stringify(this.db.training));
-        },
-
-        // --- NAVIGATION ---
-        showView(id) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            localStorage.setItem('an_videos', JSON.stringify(this.db.videos));
         },
 
         // --- AUTH ---
         register() {
             const name = document.getElementById('re-name').value;
             const pass = document.getElementById('re-pass').value;
-            const phone = document.getElementById('re-phone').value;
-            const email = document.getElementById('re-email').value;
-            const dob = document.getElementById('re-dob').value;
+            if(!name || !pass) return alert("מלא פרטים!");
 
-            if(!name || !pass || !phone) return alert("אנא מלא את כל פרטי החובה");
+            document.getElementById('reg-label').style.display = 'none';
+            document.getElementById('reg-loader').style.display = 'block';
 
-            const newUser = {
-                name, pass, phone, email, dob,
-                role: 'rep',
-                status: 'pending', // pending, interview, training, active
-                interviewStarted: false,
-                trainingFinished: false
-            };
-
-            this.db.users.push(newUser);
-            this.save();
-            alert("ההרשמה הצליחה! המנהל יבחן את הבקשה שלך.");
-            location.reload();
+            setTimeout(() => {
+                const newUser = {
+                    name, pass, 
+                    phone: document.getElementById('re-phone').value,
+                    email: document.getElementById('re-email').value,
+                    dob: document.getElementById('re-dob').value,
+                    role: 'rep', status: 'pending', interviewActive: false
+                };
+                this.db.users.push(newUser);
+                this.save();
+                
+                // Telegram Notification Simulation
+                console.log("ALERT: New Register from Panel to Telegram Bot!");
+                
+                alert("אנחנו עוברים על הבקשה שלך. ניצור איתך קשר לראיון אונליין זריז!");
+                location.reload();
+            }, 2000);
         },
 
         login() {
-            const name = document.getElementById('li-user').value;
-            const pass = document.getElementById('li-pass').value;
-            const user = this.db.users.find(u => u.name === name && u.pass === pass);
-
-            if(!user) return alert("פרטי כניסה שגויים");
-
-            this.state.current = user;
-            if(user.role === 'admin') {
-                this.showView('view-admin');
-                this.renderAdminList();
-            } else {
-                this.handleRepNavigation(user);
-            }
+            const user = this.db.users.find(u => u.name === document.getElementById('li-user').value && u.pass === document.getElementById('li-pass').value);
+            if(!user) return alert("פרטים שגויים");
+            this.state.user = user;
+            if(user.role === 'admin') this.showView('view-admin');
+            else this.loadRepView(user);
         },
 
-        handleRepNavigation(user) {
+        loadRepView(user) {
             if(user.status === 'pending') this.showView('view-pending');
             else if(user.status === 'interview') {
                 this.showView('view-interview');
-                if(user.interviewStarted) document.getElementById('interview-lock').style.display = 'none';
-                this.renderMessages('int-messages', user.name);
+                if(!user.interviewActive) document.getElementById('interview-lock').style.display = 'flex';
+                this.renderChat(user.name);
             }
-            else if(user.status === 'training') this.initTraining();
+            else if(user.status === 'training') this.renderTraining();
         },
 
-        logout() { location.reload(); },
+        showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'view-admin') this.renderAdmin();
+        },
 
-        // --- ADMIN ACTIONS ---
-        renderAdminList() {
-            const list = document.getElementById('admin-user-list');
-            list.innerHTML = this.db.users.filter(u => u.role !== 'admin').map(u => `
-                <div style="padding: 12px; border-radius: 15px; background: ${this.state.activeAdminTarget === u.name ? '#FFF5F5' : '#F9F9F9'}; border: 1px solid ${this.state.activeAdminTarget === u.name ? 'var(--primary)' : 'var(--border)'}; margin-bottom: 10px; cursor: pointer;" onclick="app.adminSelectUser('${u.name}')">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <b>${u.name}</b>
-                        <span class="badge badge-${u.status}">${u.status}</span>
+        // --- ADMIN ---
+        renderAdmin() {
+            const pList = document.getElementById('admin-pending-list');
+            const aList = document.getElementById('admin-active-list');
+            pList.innerHTML = ''; aList.innerHTML = '';
+
+            this.db.users.filter(u => u.role !== 'admin').forEach(u => {
+                const card = `<div class="admin-card">
+                    <div><b>${u.name}</b> <br> <small>${u.phone}</small></div>
+                    <div style="display:flex; gap:5px;">
+                        ${u.status === 'pending' ? `<button onclick="app.adminAction('${u.name}', 'approve')" class="btn-task" style="background:var(--success)">אשר ✅</button>
+                        <button onclick="app.adminAction('${u.name}', 'delete')" class="btn-task" style="background:var(--primary)">מחק 🗑️</button>` : 
+                        `<button onclick="app.adminStartChat('${u.name}')" class="btn-task">כנס לראיון 🎙️</button>`}
                     </div>
-                    <small>${u.phone}</small>
-                </div>
-            `).join('');
+                </div>`;
+                if(u.status === 'pending') pList.innerHTML += card;
+                else aList.innerHTML += card;
+            });
         },
 
-        adminSelectUser(name) {
-            this.state.activeAdminTarget = name;
-            document.getElementById('admin-empty-state').style.display = 'none';
-            document.getElementById('admin-chat-view').style.display = 'flex';
-            document.getElementById('admin-active-name').innerText = name;
-            
+        adminAction(name, action) {
             const user = this.db.users.find(u => u.name === name);
-            if(user.status === 'pending') {
-                if(confirm(`האם לאשר ל-${name} להתחיל ראיון?`)) {
-                    user.status = 'interview';
-                    this.save();
-                }
-            }
-            
-            this.renderAdminList();
-            this.renderMessages('admin-messages', name);
+            if(action === 'approve') user.status = 'interview';
+            else if(action === 'delete') this.db.users = this.db.users.filter(u => u.name !== name);
+            this.save(); this.renderAdmin();
+        },
+
+        adminStartChat(name) {
+            this.state.target = name;
+            this.showView('view-interview');
+            document.getElementById('admin-tasks').style.display = 'block';
+            this.renderChat(name);
         },
 
         adminTask(type) {
-            const name = this.state.activeAdminTarget;
+            const name = this.state.target;
             let text = "";
-            if(type === 'welcome') text = "👋 שלום! אני שמעון. בוא נתחיל בראיון. האם אתה מעל גיל 18 ויש לך מחשב לעבודה?";
-            if(type === 'cv') text = "📄 מעולה. צרף לי בבקשה קורות חיים כאן בצ'אט.";
-            if(type === 'id') text = "🆔 נראה טוב. לסיום הראיון, שלח צילום תעודת זהות ונתחיל בהכשרה.";
-            if(type === 'approve_training') {
-                text = "🎓 מזל טוב! עברת את הראיון. אני פותח לך כעת את פאנל ההכשרה.";
-                const user = this.db.users.find(u => u.name === name);
-                user.status = 'training';
+            if(type === 'welcome') text = "👋 ברוך הבא לראיון למשרת נציג שירות לקוחות אונליין ב-App Now. אני שמעון ואני אעשה איתך את הראיון. הדרישות הן מעל גיל 18, זמינות ל-3 ימים בשבוע, מחשב. האם המשרה זמינה עבורך?";
+            if(type === 'cv') text = "📄 שמח לשמוע שהמשרה מתאימה לך, צרף לי בבקשה קורות חיים (לחץ על אייקון האטב בשורת הצ'אט).";
+            if(type === 'id') text = "🆔 אני עובר על קורות החיים שלך, תשלח לי בינתיים צילום תעודת זהות ונתקדם להכשרה.";
+            if(type === 'finish') {
+                text = "🎓 מזל טוב! עברת את הראיון. אני מעביר אותך כעת לפאנל ההכשרות המקצועי שלנו.";
+                this.db.users.find(u => u.name === name).status = 'training';
             }
-
             this.pushMsg(name, 'admin', text);
-            this.renderMessages('admin-messages', name);
         },
 
-        adminSendMsg() {
-            const input = document.getElementById('admin-input');
-            if(!input.value.trim()) return;
-            this.pushMsg(this.state.activeAdminTarget, 'admin', input.value);
-            input.value = '';
-            this.renderMessages('admin-messages', this.state.activeAdminTarget);
-        },
-
-        // --- REP ACTIONS ---
+        // --- CHAT & FILES ---
         repStartInterview() {
-            this.state.current.interviewStarted = true;
-            this.save();
-            document.getElementById('interview-lock').style.display = 'none';
-            this.pushMsg(this.state.current.name, 'admin', "המנהל התחבר! שמעון כאן. שלח הודעה כשאתה מוכן.");
+            this.state.user.interviewActive = true;
+            this.save(); document.getElementById('interview-lock').style.display = 'none';
+            this.pushMsg(this.state.user.name, 'admin', "המנהל שמעון התחבר לראיון. הוא יתחיל לשלוח לך הודעות עכשיו.");
         },
 
         sendMsg() {
-            const input = document.getElementById('int-input');
-            if(!input.value.trim()) return;
-            this.pushMsg(this.state.current.name, 'user', input.value);
-            input.value = '';
-            this.renderMessages('int-messages', this.state.current.name);
+            const input = document.getElementById('chat-in');
+            const name = this.state.user.role === 'admin' ? this.state.target : this.state.user.name;
+            if(input.value) { this.pushMsg(name, this.state.user.role, input.value); input.value = ''; }
         },
 
-        // --- CHAT ENGINE ---
         pushMsg(chatName, sender, text, file = null) {
             if(!this.db.chats[chatName]) this.db.chats[chatName] = [];
-            this.db.chats[chatName].push({ sender, text, file, time: new Date().toLocaleTimeString() });
-            this.save();
+            this.db.chats[chatName].push({ sender, text, file });
+            this.save(); this.renderChat(chatName);
         },
 
-        renderMessages(containerId, chatName) {
-            const container = document.getElementById(containerId);
-            const chat = this.db.chats[chatName] || [];
-            container.innerHTML = chat.map(m => `
-                <div class="msg ${m.sender}">
-                    ${m.text}
-                    ${m.file ? `<img src="${m.file}">` : ''}
+        renderChat(name) {
+            const box = document.getElementById('chat-box');
+            box.innerHTML = (this.db.chats[name] || []).map(m => `<div class="msg ${m.sender}">${m.text} ${m.file ? `<img src="${m.file}">` : ''}</div>`).join('');
+            box.scrollTop = box.scrollHeight;
+        },
+
+        uploadFile(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => this.pushMsg(this.state.user.name, 'user', "📎 צירף קובץ:", ev.target.result);
+            reader.readAsDataURL(e.target.files[0]);
+        },
+
+        // --- TRAINING ---
+        renderTraining() {
+            this.showView('view-training');
+            const list = document.getElementById('video-list');
+            list.innerHTML = this.db.videos.map((v, i) => `
+                <div class="panel" style="max-width:100%">
+                    <h3>${v.title}</h3>
+                    <div class="video-box"><iframe src="${v.url}"></iframe></div>
+                    <button id="btn-v-${i}" class="btn btn-primary" style="display:none" onclick="app.finishChapter(${i})">סיום פרק ✅</button>
+                    <p id="timer-v-${i}" style="text-align:center; color:var(--primary); font-weight:700">המתן ${v.time} שניות לסיום...</p>
                 </div>
             `).join('');
-            container.scrollTop = container.scrollHeight;
+
+            this.db.videos.forEach((v, i) => {
+                setTimeout(() => {
+                    document.getElementById(`btn-v-${i}`).style.display = 'block';
+                    document.getElementById(`timer-v-${i}`).style.display = 'none';
+                }, v.time * 1000);
+            });
         },
 
-        handleUpload(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                this.pushMsg(this.state.current.name, 'user', `📎 הועלה קובץ: ${file.name}`, event.target.result);
-                this.renderMessages('int-messages', this.state.current.name);
-            };
-            reader.readAsDataURL(file);
+        finishChapter(i) {
+            alert("פרק סומן כנצפה!");
+            if(i === this.db.videos.length -1) {
+                this.state.user.status = 'active'; this.save();
+                alert("סיימת את כל ההכשרות! המנהל יאשר אותך למערכת הצא'טים האקטיבית.");
+                location.reload();
+            }
         },
 
-        // --- TRAINING ENGINE ---
-        initTraining() {
-            this.showView('view-training');
-            const list = document.getElementById('training-list');
-            const vid = this.db.training[0];
-            list.innerHTML = `
-                <h3>${vid.title}</h3>
-                <div class="video-container">
-                    <iframe src="${vid.url}" allowfullscreen></iframe>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                document.getElementById('training-status-text').innerText = "סיימת את הסרטון! כעת ניתן לבקש אישור.";
-                document.getElementById('btn-finish-training').style.display = 'block';
-            }, vid.duration * 1000);
+        addVideo() {
+            const title = document.getElementById('v-title').value;
+            const url = document.getElementById('v-url').value;
+            const time = document.getElementById('v-time').value;
+            if(title && url) { this.db.videos.push({title, url, time}); this.save(); alert("סרטון נוסף!"); this.renderAdmin(); }
         },
 
-        completeTraining() {
-            this.state.current.status = 'active';
-            this.save();
-            alert("כל הכבוד! עברת את ההכשרה. שמעון יצור איתך קשר לתחילת משמרת ראשונה.");
-            location.reload();
-        }
+        logout() { location.reload(); }
     };
 
-    function switchAuth(mode) {
-        document.getElementById('form-login').style.display = mode === 'login' ? 'block' : 'none';
-        document.getElementById('form-reg').style.display = mode === 'reg' ? 'block' : 'none';
+    function toggleAuth(mode) {
+        document.getElementById('pane-login').style.display = mode === 'login' ? 'block' : 'none';
+        document.getElementById('pane-register').style.display = mode === 'register' ? 'block' : 'none';
+        document.getElementById('tab-login').style.borderColor = mode === 'login' ? 'var(--primary)' : 'var(--border)';
+        document.getElementById('tab-register').style.borderColor = mode === 'register' ? 'var(--primary)' : 'var(--border)';
     }
+
+    // Auto-Sync Simulation
+    setInterval(() => {
+        if(app.state.user) {
+            const name = app.state.user.role === 'admin' ? app.state.target : app.state.user.name;
+            if(name) app.renderChat(name);
+        }
+    }, 2000);
 
 </script>
 </body>
