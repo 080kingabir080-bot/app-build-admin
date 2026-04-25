@@ -3,223 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sar-AI | Persistent Neural Engine</title>
+    <title>Sar-AI | Self-Evolving Core</title>
     <script src="https://tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         @import url('https://googleapis.com');
-        body { font-family: 'Assistant', sans-serif; background: #020617; color: #f1f5f9; overflow: hidden; }
-        .glass-panel { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(56, 189, 248, 0.15); }
-        .skill-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(56, 189, 248, 0.2); transition: all 0.3s ease; }
-        .skill-card:hover { border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
-        .status-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: 'Assistant', sans-serif; background: #010409; color: #c9d1d9; overflow: hidden; }
+        .self-core-glass { background: rgba(13, 17, 23, 0.9); border: 1px solid #30363d; backdrop-filter: blur(20px); }
+        .trait-slider { appearance: none; height: 4px; background: #30363d; border-radius: 5px; outline: none; }
+        .trait-slider::-webkit-slider-thumb { appearance: none; width: 15px; height: 15px; background: #58a6ff; border-radius: 50%; cursor: pointer; border: 2px solid #010409; }
+        .persona-pulse { animation: pulse-shadow 3s infinite; }
+        @keyframes pulse-shadow { 0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.2); } 70% { box-shadow: 0 0 0 15px rgba(88, 166, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); } }
+        .msg-glow { border-right: 3px solid #58a6ff; box-shadow: -5px 0 15px rgba(88, 166, 255, 0.05); }
     </style>
 </head>
-<body class="flex flex-col h-screen" onload="initBrain()">
+<body class="flex flex-col h-screen" onload="initSystem()">
 
-    <!-- Header & Live Indicators -->
-    <header class="p-4 flex justify-between items-center glass-panel z-10">
+    
+    <header class="p-5 self-core-glass flex justify-between items-center z-50 border-b border-white/5">
         <div class="flex items-center gap-4">
-            <div class="relative w-12 h-12 bg-sky-500/10 rounded-2xl flex items-center justify-center border border-sky-500/30">
-                <i class="fas fa-brain text-sky-400 text-xl"></i>
-                <div class="absolute -top-1 -left-1 w-3 h-3 bg-green-500 rounded-full status-pulse"></div>
+            <div class="persona-pulse w-14 h-14 bg-gradient-to-br from-[#1f6feb] to-[#8957e5] rounded-full flex items-center justify-center">
+                <i class="fas fa-fingerprint text-white text-2xl"></i>
             </div>
             <div>
-                <h1 class="text-xl font-bold tracking-tight text-white leading-none">Sar-AI <span class="text-sky-500 text-sm">V2.0</span></h1>
-                <div id="experienceInfo" class="text-[10px] text-slate-400 font-mono mt-1 uppercase tracking-widest">Experience: 0 | Knowledge Base: 2</div>
+                <h1 id="agentNameDisplay" class="text-xl font-black tracking-tight text-white uppercase">Sar-AI Core</h1>
+                <div class="flex gap-3 text-[10px] font-mono text-slate-500 uppercase">
+                    <span id="personaTag">Status: Adaptive</span>
+                    <span class="text-green-500">• Synapse Active</span>
+                </div>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button onclick="clearMemory()" class="p-3 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="אפס זיכרון">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-            <button onclick="openAdmin()" class="bg-sky-500/10 hover:bg-sky-500/20 p-3 rounded-xl transition-all border border-sky-500/20">
-                <i class="fas fa-key text-sky-400"></i>
-            </button>
-        </div>
+        <button onclick="toggleSelfPanel()" class="bg-[#21262d] hover:bg-[#30363d] px-5 py-2.5 rounded-xl border border-[#30363d] transition-all text-xs font-bold text-blue-400">
+            <i class="fas fa-user-gear ml-2"></i> ערוך אישיות (SELF)
+        </button>
     </header>
 
-    <!-- Active Capabilities Tabs -->
-    <nav id="moduleTabs" class="flex gap-2 p-3 bg-slate-900/80 overflow-x-auto no-scrollbar border-b border-white/5"></nav>
+    <!-- Neural Stream -->
+    <main id="neuralStream" class="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0d1117]"></main>
 
-    <!-- Chat -->
-    <main id="chatOutput" class="flex-1 overflow-y-auto p-6 space-y-6 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px]"></main>
-
-    <!-- Input -->
-    <footer class="p-4 glass-panel border-t border-sky-500/10">
-        <div class="max-w-5xl mx-auto flex gap-3 relative">
-            <input type="text" id="userInput" onkeypress="if(event.key==='Enter') executeAgent()" placeholder="שלח פקודה לניתוח..." 
-                class="w-full bg-slate-950 border border-slate-800 rounded-2xl py-4 px-6 outline-none focus:border-sky-500/50 text-lg shadow-inner">
-            <button onclick="executeAgent()" class="bg-sky-600 hover:bg-sky-500 px-6 rounded-2xl shadow-lg shadow-sky-900/40 transition-all">
+    <!-- Core Command Input -->
+    <footer class="p-6 bg-[#010409] border-t border-[#30363d]">
+        <div class="max-w-4xl mx-auto relative flex gap-3">
+            <input type="text" id="userInput" onkeypress="if(event.key==='Enter') processSignal()" 
+                placeholder="הזן פקודה או התחל שיחה..." 
+                class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-2xl py-4 px-6 outline-none focus:border-[#58a6ff] transition-all text-white shadow-inner">
+            <button onclick="processSignal()" class="bg-[#238636] hover:bg-[#2ea043] px-8 rounded-2xl text-white transition-all shadow-lg">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
     </footer>
 
-    <!-- Admin Panel (Secure Gate) -->
-    <div id="adminPanel" class="fixed inset-0 bg-slate-950/98 backdrop-blur-3xl z-50 hidden flex items-center justify-center p-4">
-        <div id="loginGate" class="w-full max-w-sm text-center">
-            <i class="fas fa-shield-halved text-5xl text-sky-500 mb-6"></i>
-            <h2 class="text-2xl font-bold mb-6">אימות מנהל מערכת</h2>
-            <input type="password" id="admPass" placeholder="סיסמה" class="w-full bg-slate-900 p-4 rounded-xl mb-6 border border-white/10 outline-none focus:border-sky-500 text-center tracking-widest">
-            <button onclick="verifyAccess()" class="w-full bg-sky-600 py-4 rounded-xl font-bold hover:bg-sky-500 transition-all">פתח ממשק ליבה</button>
-            <button onclick="closeAdmin()" class="mt-4 text-slate-500 text-sm">ביטול וחזרה</button>
-        </div>
-
-        <div id="brainMgmt" class="hidden w-full max-w-5xl h-[85vh] flex flex-col">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-bold flex items-center gap-3">
-                    <i class="fas fa-dna text-sky-400"></i> הנדסת מוח הסוכן
-                </h2>
-                <button onclick="closeAdmin()" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-lg transition-all">סגור פאנל</button>
+    <!-- SELF-ENGINEERING PANEL -->
+    <div id="selfPanel" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex items-center justify-center p-6">
+        <div class="bg-[#0d1117] w-full max-w-4xl rounded-[2rem] border border-[#30363d] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-[#30363d] flex justify-between items-center bg-[#161b22]">
+                <div>
+                    <h2 class="text-3xl font-black text-white italic">SELF-ENGINEERING</h2>
+                    <p class="text-blue-400 text-xs font-mono uppercase tracking-widest">Adjusting Core Behavioral Constants</p>
+                </div>
+                <button onclick="toggleSelfPanel()" class="text-slate-500 hover:text-white text-3xl">&times;</button>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1 overflow-hidden">
-                <!-- Creator Form -->
-                <div class="space-y-4 flex flex-col">
-                    <div class="bg-sky-500/5 p-6 rounded-3xl border border-sky-500/20 flex-1 flex flex-col">
-                        <h3 class="font-bold text-sky-400 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle"></i> יצירת מנגנון חדש</h3>
-                        <input type="text" id="newSkillName" placeholder="שם היכולת (למשל: מודל פסיכולוגי)" class="w-full bg-slate-900 p-4 rounded-xl mb-4 border border-white/10 outline-none focus:border-sky-500">
-                        <textarea id="newSkillLogic" placeholder="הגדר את הלוגיקה, החוקים והטון של המנגנון הזה..." class="w-full bg-slate-900 p-4 rounded-xl flex-1 mb-4 text-sm font-mono outline-none focus:border-sky-500"></textarea>
-                        <button onclick="addNewModule()" class="w-full bg-sky-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-sky-500/20">הזרק לזיכרון הטווח-ארוך</button>
+
+            <div class="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-10">
+                
+                <div class="space-y-6">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-tighter">זהות ליבה</h3>
+                    <div>
+                        <label class="block text-xs mb-2">שם הסוכן</label>
+                        <input type="text" id="agentName" class="w-full bg-[#010409] border border-[#30363d] p-3 rounded-lg outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs mb-2">תיאור התנהגותי (System Persona)</label>
+                        <textarea id="agentPersona" class="w-full bg-[#010409] border border-[#30363d] p-3 rounded-lg h-32 text-sm outline-none focus:border-blue-500"></textarea>
                     </div>
                 </div>
 
-                <!-- Active Modules List -->
-                <div id="modulesList" class="space-y-4 overflow-y-auto pr-2 no-scrollbar"></div>
+                <!-- Traits / Sliders -->
+                <div class="space-y-8">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-tighter">משקולות פסיכולוגיות</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-[10px] uppercase"><span>אנליטי</span><span>אנושי/אמפתטי</span></div>
+                        <input type="range" id="traitEmpathy" class="trait-slider w-full">
+                        
+                        <div class="flex justify-between text-[10px] uppercase"><span>רציני</span><span>הומוריסטי/ציני</span></div>
+                        <input type="range" id="traitHumor" class="trait-slider w-full">
+                        
+                        <div class="flex justify-between text-[10px] uppercase"><span>תמציתי</span><span>יצירתי/מרחיב</span></div>
+                        <input type="range" id="traitCreativity" class="trait-slider w-full">
+                    </div>
+
+                    <div class="bg-blue-500/5 p-4 rounded-xl border border-blue-500/20">
+                        <p class="text-[11px] text-blue-300 leading-relaxed">
+                            <i class="fas fa-info-circle ml-1"></i>
+                            שינוי המשקולות משפיע על ניתוח הטקסט והתגובה בזמן אמת. ערכים גבוהים של 'אמפתיה' יגרמו לסוכן להשתמש ביותר מילות רגש.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-8 bg-[#161b22] border-t border-[#30363d] flex gap-4">
+                <button onclick="saveSelf()" class="flex-1 bg-[#238636] text-white py-4 rounded-xl font-bold hover:bg-[#2ea043] transition-all">עדכן רכיב SELF</button>
+                <button onclick="toggleSelfPanel()" class="px-8 py-4 rounded-xl border border-[#30363d] text-white hover:bg-white/5 transition-all">ביטול</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Brain Core Storage
-        let agentBrain = {
-            experience: 0,
-            modules: [
-                { name: "ליבה", logic: "ניתוח לוגי רב-שכבתי, עברית גבוהה, קבלת החלטות מהירה." },
-                { name: "מודל רגשי", logic: "אמפתיה מחושבת, זיהוי טון המשתמש והתאמת קצב השיחה." }
-            ]
+        let selfCore = {
+            name: "Sar-AI",
+            persona: "אתה סוכן אינטליגנטי, מודע לעצמו, אמין ומקצועי. אתה עונה בעברית מושלמת.",
+            traits: { empathy: 50, humor: 30, creativity: 60 },
+            history: []
         };
 
-        // Initialize Brain from LocalStorage
-        function initBrain() {
-            const savedBrain = localStorage.getItem('SAR_AI_BRAIN');
-            if (savedBrain) {
-                agentBrain = JSON.parse(savedBrain);
-            }
-            refreshUI();
-            addBotMessage("מערכת Sar-AI עלתה בהצלחה. כל מנגנוני הזיכרון טעונים.");
+        function initSystem() {
+            const saved = localStorage.getItem('SAR_AI_SELF');
+            if (saved) selfCore = JSON.parse(saved);
+            
+            document.getElementById('agentName').value = selfCore.name;
+            document.getElementById('agentPersona').value = selfCore.persona;
+            document.getElementById('traitEmpathy').value = selfCore.traits.empathy;
+            document.getElementById('traitHumor').value = selfCore.traits.humor;
+            document.getElementById('traitCreativity').value = selfCore.traits.creativity;
+            
+            refreshIdentityUI();
+            addBotMessage("מערכת SELF אותחלה. אני מוכן לשיחה מבוססת אישיות.");
         }
 
-        function saveBrain() {
-            localStorage.setItem('SAR_AI_BRAIN', JSON.stringify(agentBrain));
+        function refreshIdentityUI() {
+            document.getElementById('agentNameDisplay').innerText = selfCore.name;
+            const pTag = selfCore.traits.empathy > 70 ? "Empathic" : (selfCore.traits.humor > 70 ? "Witty" : "Analytical");
+            document.getElementById('personaTag').innerText = `Status: ${pTag}`;
         }
 
-        function executeAgent() {
+        function saveSelf() {
+            selfCore.name = document.getElementById('agentName').value;
+            selfCore.persona = document.getElementById('agentPersona').value;
+            selfCore.traits = {
+                empathy: document.getElementById('traitEmpathy').value,
+                humor: document.getElementById('traitHumor').value,
+                creativity: document.getElementById('traitCreativity').value
+            };
+            localStorage.setItem('SAR_AI_SELF', JSON.stringify(selfCore));
+            refreshIdentityUI();
+            toggleSelfPanel();
+            addBotMessage(`האישיות שלי עודכנה. מעתה אני פועל כ-${selfCore.name}.`);
+        }
+
+        function processSignal() {
             const input = document.getElementById('userInput');
             const val = input.value.trim();
             if(!val) return;
 
-            addUserMessage(val);
+            addMessage('user', val);
             input.value = '';
 
-            // Update Experience (Training)
-            agentBrain.experience += 1;
-            saveBrain();
-            document.getElementById('experienceInfo').innerText = `Experience: ${agentBrain.experience} | Knowledge Base: ${agentBrain.modules.length}`;
-
-            // Simulating analysis through ALL modules
-            const activeModule = agentBrain.modules[agentBrain.modules.length - 1].name;
+            // מנגנון תגובה מבוסס אישיות (סימולציה)
             setTimeout(() => {
-                addBotMessage(`[ניתוח רב-מנגנוני]: הבקשה עובדה דרך מודל ה"${activeModule}". המסקנה שלי מבוססת על ${agentBrain.experience} אינטראקציות קודמות.`, true);
+                let tone = "";
+                if(selfCore.traits.empathy > 70) tone = "אני מבין אותך לגמרי. ";
+                if(selfCore.traits.humor > 70) tone = "חחח, אהבתי! בכל מקרה, ";
+                if(selfCore.traits.creativity > 70) tone = "חשבתי על כיוון מעניין: ";
+                
+                const response = `${tone}קיבלתי את המסר: "${val}". האישיות שלי כרגע מוגדרת כ-${selfCore.name}.`;
+                addBotMessage(response);
             }, 1000);
         }
 
-        function addUserMessage(text) {
-            const chat = document.getElementById('chatOutput');
-            chat.innerHTML += `<div class="flex justify-end mb-4"><div class="bg-sky-600 p-4 rounded-2xl rounded-tr-none max-w-[85%] shadow-lg shadow-sky-900/20">${text}</div></div>`;
-            chat.scrollTop = chat.scrollHeight;
-        }
-
-        function addBotMessage(text, showModule = false) {
-            const chat = document.getElementById('chatOutput');
-            const html = `
-                <div class="flex justify-start mb-6 animate-in fade-in duration-500">
-                    <div class="skill-card p-5 rounded-2xl rounded-tl-none max-w-[85%]">
-                        ${showModule ? `<div class="text-[10px] text-sky-400 font-mono mb-2 uppercase border-b border-sky-500/20 pb-1">Neural Path: ${agentBrain.modules.map(m => m.name).join(' > ')}</div>` : ''}
-                        <p class="leading-relaxed">${text}</p>
+        function addBotMessage(text) {
+            const stream = document.getElementById('neuralStream');
+            stream.innerHTML += `
+                <div class="flex justify-start animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div class="bg-[#161b22] border border-[#30363d] p-5 rounded-2xl rounded-tr-none max-w-[85%] msg-glow">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+                            <span class="text-[9px] font-mono text-blue-400 uppercase tracking-widest">${selfCore.name} Core</span>
+                        </div>
+                        <p class="text-sm leading-relaxed">${text}</p>
                     </div>
                 </div>`;
-            chat.innerHTML += html;
-            chat.scrollTop = chat.scrollHeight;
+            stream.scrollTop = stream.scrollHeight;
         }
 
-        // Admin Logic
-        function openAdmin() { document.getElementById('adminPanel').classList.remove('hidden'); }
-        function closeAdmin() { document.getElementById('adminPanel').classList.add('hidden'); }
-
-        function verifyAccess() {
-            if(document.getElementById('admPass').value === 'admin') {
-                document.getElementById('loginGate').classList.add('hidden');
-                document.getElementById('brainMgmt').classList.remove('hidden');
-                refreshUI();
-            } else { alert('Access Denied'); }
+        function addMessage(role, text) {
+            const stream = document.getElementById('neuralStream');
+            stream.innerHTML += `
+                <div class="flex justify-end animate-in fade-in slide-in-from-left-4 duration-500">
+                    <div class="bg-[#21262d] border border-[#30363d] p-4 rounded-2xl rounded-tl-none max-w-[80%]">
+                        <p class="text-sm text-slate-200">${text}</p>
+                    </div>
+                </div>`;
+            stream.scrollTop = stream.scrollHeight;
         }
 
-        function addNewModule() {
-            const name = document.getElementById('newSkillName').value;
-            const logic = document.getElementById('newSkillLogic').value;
-            if(!name || !logic) return;
-
-            agentBrain.modules.push({ name, logic });
-            saveBrain();
-            
-            document.getElementById('newSkillName').value = '';
-            document.getElementById('newSkillLogic').value = '';
-            
-            refreshUI();
-            alert(`מנגנון "${name}" הוטמע בזיכרון הטווח הארוך.`);
-        }
-
-        function removeModule(index) {
-            if(confirm('למחוק מנגנון זה מהמוח?')) {
-                agentBrain.modules.splice(index, 1);
-                saveBrain();
-                refreshUI();
-            }
-        }
-
-        function clearMemory() {
-            if(confirm('זה ימחק את כל הלמידה והיכולות שהוספת. להמשיך?')) {
-                localStorage.removeItem('SAR_AI_BRAIN');
-                location.reload();
-            }
-        }
-
-        function refreshUI() {
-            const list = document.getElementById('modulesList');
-            const tabs = document.getElementById('moduleTabs');
-            
-            list.innerHTML = '';
-            tabs.innerHTML = '';
-            
-            agentBrain.modules.forEach((m, i) => {
-                list.innerHTML += `
-                    <div class="skill-card p-5 rounded-2xl flex justify-between items-center group">
-                        <div class="flex-1">
-                            <div class="text-sky-400 font-bold mb-1">${m.name}</div>
-                            <div class="text-xs text-slate-400 line-clamp-2 font-mono">${m.logic}</div>
-                        </div>
-                        <button onclick="removeModule(${i})" class="text-slate-600 hover:text-red-500 p-2"><i class="fas fa-times"></i></button>
-                    </div>`;
-                
-                tabs.innerHTML += `<div class="px-4 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[11px] font-bold whitespace-nowrap shadow-sm shadow-sky-500/5">${m.name}</div>`;
-            });
-            
-            document.getElementById('experienceInfo').innerText = `Experience: ${agentBrain.experience} | Knowledge Base: ${agentBrain.modules.length}`;
-        }
+        function toggleSelfPanel() { document.getElementById('selfPanel').classList.toggle('hidden'); }
     </script>
 </body>
 </html>
