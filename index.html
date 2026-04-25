@@ -3,246 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sar-AI | Future Intelligence</title>
+    <title>sar-AI | העתיד כבר כאן</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://googleapis.com" rel="stylesheet">
     <script src="https://tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cloudflare.com">
+    <script src="https://unpkg.com"></script>
+    
     <style>
-        @import url('https://googleapis.com');
-        
         :root {
-            --primary: #3b82f6;
-            --accent: #d946ef;
-            --bg: #020617;
+            --bg-dark: #0a0f1d;
+            --accent-cyan: #00f2fe;
+            --accent-purple: #4facfe;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        body { 
-            font-family: 'Assistant', sans-serif; 
-            background-color: var(--bg);
+        body {
+            font-family: 'Assistant', 'Heebo', sans-serif;
+            background-color: var(--bg-dark);
             color: white;
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.05) 0%, transparent 40%);
+            scroll-behavior: smooth;
         }
 
-        /* אפקט זכוכית יוקרתי */
-        .crystal {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+        /* Background Gradient */
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -20%, #1e293b 0%, #0a0f1d 80%);
+            z-index: -1;
         }
 
-        /* כפתור בגרפיקה גבוהה */
-        .btn-elite {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-            position: relative;
-            overflow: hidden;
+        /* Glassmorphism Classes */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .glass-card {
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
+        }
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-10px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 20px 40px rgba(0, 242, 254, 0.1);
         }
 
-        .btn-elite:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(217, 70, 239, 0.5);
+        /* Buttons & Glowing */
+        .btn-glow {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.6);
+            transform: scale(1.02);
         }
 
-        .btn-elite::after {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: rgba(255,255,255,0.1);
-            transform: rotate(45deg);
-            transition: 0.5s;
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+
+        .modal-enter { animation: modalIn 0.4s ease-out forwards; }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        .btn-elite:hover::after { left: 120%; }
-
-        /* קונטיינר עגול קצוות */
-        .rounded-super { border-radius: 40px; }
-
-        /* אנימציית לוגו */
-        .logo-sphere {
-            background: conic-gradient(from 0deg, var(--primary), var(--accent), var(--primary));
-            animation: rotate 4s linear infinite;
-            filter: blur(1px);
-        }
-
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .chat-area { height: calc(100vh - 220px); scrollbar-width: none; }
-        .chat-area::-webkit-scrollbar { display: none; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
+    <div class="bg-glow"></div>
 
-    <!-- Navbar -->
-    <nav class="p-8 flex justify-between items-center max-w-7xl mx-auto w-full z-50">
-        <div class="flex items-center gap-4 group cursor-pointer" onclick="navigate('home')">
-            <div class="relative w-12 h-12 flex items-center justify-center">
-                <div class="absolute inset-0 logo-sphere rounded-full opacity-50 blur-md"></div>
-                <div class="relative bg-slate-950 w-10 h-10 rounded-full flex items-center justify-center border border-white/20">
-                    <span class="font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500">S</span>
-                </div>
+    <!-- Header / Navbar -->
+    <header class="fixed top-0 w-full z-50 transition-all duration-300 px-6 py-4" id="mainHeader">
+        <nav class="max-w-7xl mx-auto flex justify-between items-center glass rounded-full px-8 py-3">
+            <div class="text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#4facfe] to-[#00f2fe]">sar-AI</span>
             </div>
-            <h1 class="text-3xl font-extrabold tracking-tighter italic">sar-AI</h1>
-        </div>
-        
-        <div class="hidden md:flex crystal px-8 py-3 rounded-full gap-10 text-sm font-bold tracking-widest text-slate-400">
-            <button onclick="navigate('home')" class="hover:text-white transition-all uppercase">בית</button>
-            <button onclick="navigate('chat')" class="hover:text-white transition-all uppercase">צ'אט</button>
-            <button onclick="navigate('admin')" class="hover:text-white transition-all uppercase">ניהול</button>
-        </div>
-
-        <button onclick="navigate('login')" class="btn-elite px-8 py-3 rounded-full text-sm font-bold uppercase tracking-tighter">התחברות</button>
-    </nav>
-
-    <!-- Main Section: Home -->
-    <section id="view-home" class="view px-6 pt-12 flex-1 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
-        <div class="flex-1 space-y-10 text-center md:text-right">
-            <h2 class="text-6xl md:text-8xl font-black leading-[0.9] tracking-tighter">
-                FUTURE <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-fuchsia-500">INTELLIGENCE</span>
-            </h2>
-            <p class="text-slate-400 text-xl font-light leading-relaxed max-w-lg md:mr-0 mx-auto">
-                הסוכן החכם של Sar-AI משנה את חוקי המשחק. למידה, ניתוח וביצוע - הכל בממשק אחד עוצמתי.
-            </p>
-            <div class="flex gap-4 justify-center md:justify-start">
-                <button onclick="navigate('chat')" class="btn-elite px-12 py-5 rounded-2xl font-black text-xl">התחילו עכשיו</button>
-                <button class="crystal px-12 py-5 rounded-2xl font-bold hover:bg-white/5 transition-all text-xl">למידע נוסף</button>
+            
+            <div class="hidden md:flex gap-8 font-medium text-slate-300">
+                <a href="#home" class="hover:text-cyan-400 transition-colors">בית</a>
+                <button onclick="toggleModal('chatModal')" class="hover:text-cyan-400 transition-colors">התחילו עכשיו</button>
+                <button onclick="toggleModal('loginModal')" class="hover:text-cyan-400 transition-colors">ניהול</button>
             </div>
-        </div>
-        
-        <!-- Orb Animation -->
-        <div class="flex-1 relative flex items-center justify-center">
-            <div class="absolute w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] animate-pulse"></div>
-            <div class="crystal w-80 h-80 md:w-[450px] md:h-[450px] rounded-full flex items-center justify-center p-8 border-white/5 relative overflow-hidden">
-                <div class="absolute inset-0 bg-[url('https://transparenttextures.com')] opacity-20"></div>
-                <img src="https://unsplash.com" class="w-full h-full object-cover rounded-full mix-blend-screen opacity-70 scale-110">
-            </div>
-        </div>
-    </section>
 
-    <!-- Section: Chat -->
-    <section id="view-chat" class="view hidden px-4 md:px-0 flex-1 max-w-4xl mx-auto w-full pt-4">
-        <div class="crystal rounded-super p-6 h-full flex flex-col">
-            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
-                <div class="flex items-center gap-3">
-                    <span class="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.6)]"></span>
-                    <span class="font-bold text-slate-300">Sar-AI Neural Active</span>
-                </div>
-                <div id="tabs" class="flex gap-2"></div>
-            </div>
-            <div id="chat-stream" class="chat-area overflow-y-auto space-y-6 px-4"></div>
-            <div class="mt-auto relative pt-4">
-                <input type="text" id="user-input" onkeypress="if(event.key==='Enter') send()" placeholder="הזן פקודה למערכת..." class="w-full bg-white/5 border border-white/10 rounded-3xl py-6 px-8 outline-none focus:border-blue-500 text-lg">
-                <button onclick="send()" class="absolute left-3 top-7 px-8 btn-elite rounded-2xl py-3"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </section>
+            <button onclick="toggleModal('chatModal')" class="btn-glow px-6 py-2 rounded-full text-sm font-bold text-slate-900">
+                בואו נדבר
+            </button>
+        </nav>
+    </header>
 
-    <!-- Section: Login (Admin Gate) -->
-    <section id="view-login" class="view hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
-        <div class="crystal w-full max-w-md p-12 rounded-super text-center relative">
-            <button onclick="navigate('home')" class="absolute top-8 left-8 text-slate-500 hover:text-white"><i class="fas fa-times"></i></button>
-            <h2 class="text-4xl font-black mb-8 italic">ADMIN PORTAL</h2>
-            <div class="space-y-6">
-                <div class="text-right">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase mr-4">מזהה כניסה</label>
-                    <input type="text" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-blue-500" placeholder="Username">
-                </div>
-                <div class="text-right relative">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase mr-4">קוד גישה</label>
-                    <input type="password" id="adm-p" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-blue-500" placeholder="••••••••">
-                    <i class="fas fa-eye-slash absolute left-6 bottom-6 text-slate-600 cursor-pointer hover:text-white" onclick="tglP()"></i>
-                </div>
-                <div class="flex items-center gap-3 py-2 px-2">
-                    <input type="checkbox" id="rmb" class="w-5 h-5 rounded bg-slate-900 border-white/10 text-blue-600">
-                    <label for="rmb" class="text-sm text-slate-400">שמור פרטי גישה מוצפנים</label>
-                </div>
-                <button onclick="navigate('admin')" class="w-full btn-elite py-5 rounded-2xl font-black text-xl">כניסה מאובטחת</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section: Admin Management -->
-    <section id="view-admin" class="view hidden flex-1 max-w-6xl mx-auto w-full p-8 space-y-8">
-        <div class="flex justify-between items-center crystal p-8 rounded-super">
-            <h2 class="text-3xl font-black italic">CORE CONFIGURATION</h2>
-            <button onclick="navigate('home')" class="text-red-400 font-bold border border-red-400/20 px-6 py-2 rounded-xl hover:bg-red-400/10">LOGOUT</button>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[60vh]">
-            <div class="crystal p-10 rounded-super flex flex-col">
-                <h3 class="text-xl font-bold mb-6 text-blue-400 uppercase tracking-tighter">Inject New Ability</h3>
-                <input type="text" id="sk-n" placeholder="Module Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 mb-4 outline-none focus:border-blue-500">
-                <textarea id="sk-l" placeholder="Logic Rules & Psychology..." class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 flex-1 mb-6 outline-none focus:border-blue-500 font-mono text-sm"></textarea>
-                <button onclick="addSk()" class="btn-elite py-5 rounded-2xl font-black">SAVE TO NEURAL NETWORK</button>
-            </div>
-            <div id="sk-list" class="space-y-4 overflow-y-auto pr-4"></div>
-        </div>
-    </section>
-
-    <script>
-        let state = JSON.parse(localStorage.getItem('SAR_S')) || [{n: "CORE", l: "Logic active."}];
-
-        function navigate(id) {
-            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-            document.getElementById(`view-${id}`).classList.remove('hidden');
-            if(id === 'chat' || id === 'admin') render();
-        }
-
-        function tglP() {
-            const i = document.getElementById('adm-p');
-            i.type = i.type === 'password' ? 'text' : 'password';
-        }
-
-        function addSk() {
-            const n = document.getElementById('sk-n').value;
-            const l = document.getElementById('sk-l').value;
-            if(!n || !l) return;
-            state.push({n, l});
-            localStorage.setItem('SAR_S', JSON.stringify(state));
-            render();
-            document.getElementById('sk-n').value = '';
-            document.getElementById('sk-l').value = '';
-        }
-
-        function render() {
-            const list = document.getElementById('sk-list');
-            const tabs = document.getElementById('tabs');
-            if(list) list.innerHTML = state.map((s, i) => `
-                <div class="crystal p-6 rounded-3xl flex justify-between items-center group">
-                    <div>
-                        <div class="text-blue-400 font-black text-sm uppercase">${s.n}</div>
-                        <div class="text-xs text-slate-500 font-mono mt-1">${s.l.substring(0,40)}...</div>
-                    </div>
-                    <button onclick="state.splice(${i},1);localStorage.setItem('SAR_S', JSON.stringify(state));render();" class="text-slate-700 hover:text-red-500 transition-all">
-                        <i class="fas fa-trash"></i>
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-20 px-6">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+            <div class="text-right space-y-8 order-2 md:order-1">
+                <h1 class="text-5xl md:text-7xl font-extrabold leading-tight">
+                    פגשו את סוכן ה-AI <br>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-l from-cyan-400 to-purple-500">החדש והחכם שלכם</span>
+                </h1>
+                <p class="text-xl text-slate-400 max-w-xl leading-relaxed">
+                    מערכת אוטומציה מבוססת בינה מלאכותית שלומדת את העסק שלכם, מייעלת תהליכים ומגיבה ללקוחות בזמן אמת.
+                </p>
+                <div class="flex gap-4">
+                    <button onclick="toggleModal('chatModal')" class="btn-glow px-10 py-4 rounded-2xl text-lg font-bold text-slate-900">
+                        התחילו עכשיו
+                    </button>
+                    <button class="glass px-10 py-4 rounded-2xl text-lg font-bold hover:bg-white/5 transition-all">
+                        קראו עוד
                     </button>
                 </div>
-            `).join('');
-            if(tabs) tabs.innerHTML = state.map(s => `<span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold text-slate-500">${s.n}</span>`).join('');
+            </div>
+            
+            <div class="order-1 md:order-2 flex justify-center">
+                <div class="relative animate-float">
+                    <div class="absolute inset-0 bg-cyan-500/20 blur-[100px] rounded-full"></div>
+                    <div class="glass p-8 rounded-[40px] border-white/10 relative z-10">
+                        <i data-lucide="bot" class="w-48 h-48 text-cyan-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-24 px-6 max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Card 1 -->
+            <div class="glass-card glass p-10 rounded-[32px] text-right space-y-6">
+                <div class="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="settings" class="text-cyan-400 w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold">אוטומציה מתקדמת</h3>
+                <p class="text-slate-400">ייעול תהליכים עסקיים מורכבים במינימום מאמץ ושיפור התפוקה הארגונית.</p>
+            </div>
+            <!-- Card 2 -->
+            <div class="glass-card glass p-10 rounded-[32px] text-right space-y-6 border-cyan-500/30">
+                <div class="w-14 h-14 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="lightbulb" class="text-purple-400 w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold">למידה חכמה</h3>
+                <p class="text-slate-400">הסוכן לומד את הנתונים הייחודיים שלכם ומספק תובנות עסקיות פורצות דרך.</p>
+            </div>
+            <!-- Card 3 -->
+            <div class="glass-card glass p-10 rounded-[32px] text-right space-y-6">
+                <div class="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="headset" class="text-green-400 w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold">תמיכה 24/7</h3>
+                <p class="text-slate-400">מענה אנושי ומדויק ללקוחות שלכם בכל שעה ביום, ללא צורך במעורבות ידנית.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL: Chat Interface -->
+    <div id="chatModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+        <div class="glass w-full max-w-2xl h-[80vh] rounded-[32px] flex flex-col modal-enter overflow-hidden relative">
+            <!-- Chat Header -->
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                    <span class="font-bold text-lg text-cyan-400">sar-AI Neural Assistant</span>
+                </div>
+                <button onclick="toggleModal('chatModal')" class="p-2 hover:bg-white/10 rounded-full transition-all">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <!-- Chat Body -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <div class="flex justify-start">
+                    <div class="glass p-4 rounded-2xl rounded-tl-none max-w-[80%] border-r-4 border-cyan-500">
+                        <p>שלום! אני sar-AI. איך אוכל לעזור לך לייעל את העסק היום?</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Chat Input -->
+            <div class="p-6 border-t border-white/10">
+                <div class="relative">
+                    <input type="text" placeholder="כתוב הודעה ל-AI..." class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 pr-14 outline-none focus:border-cyan-500 transition-all">
+                    <button class="absolute left-3 top-2.5 btn-glow p-2 rounded-xl text-slate-900">
+                        <i data-lucide="send" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Admin Login -->
+    <div id="loginModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+        <div class="glass w-full max-w-md p-10 rounded-[32px] modal-enter relative">
+            <button onclick="toggleModal('loginModal')" class="absolute top-6 left-6 p-2 hover:bg-white/10 rounded-full transition-all">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-cyan-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-cyan-500/20">
+                    <i data-lucide="shield-check" class="text-cyan-400 w-8 h-8"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white">כניסת מנהל</h2>
+                <p class="text-slate-400 mt-2">גישה מאובטחת לפאנל sar-AI</p>
+            </div>
+
+            <form class="space-y-6" onsubmit="event.preventDefault()">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">שם משתמש</label>
+                    <input type="text" class="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 outline-none focus:border-cyan-500 transition-all" placeholder="הכנס שם משתמש">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">סיסמה</label>
+                    <div class="relative">
+                        <input type="password" id="passwordField" class="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 outline-none focus:border-cyan-500 transition-all" placeholder="••••••••">
+                        <button type="button" onclick="togglePassword()" class="absolute left-4 top-4 text-slate-500 hover:text-white transition-colors">
+                            <i data-lucide="eye-off" id="eyeIcon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="remember" class="w-5 h-5 rounded border-white/10 bg-white/5 checked:bg-cyan-500 transition-all cursor-pointer">
+                    <label for="remember" class="text-sm text-slate-400 cursor-pointer select-none">זכור את הפרטים שלי</label>
+                </div>
+                <button class="w-full btn-glow py-4 rounded-xl font-bold text-lg text-slate-900 shadow-xl shadow-cyan-500/20">
+                    התחברות למערכת
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Header Scroll Effect
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('mainHeader');
+            if (window.scrollY > 50) {
+                header.classList.add('bg-black/40', 'backdrop-blur-xl', 'py-2');
+            } else {
+                header.classList.remove('bg-black/40', 'backdrop-blur-xl', 'py-2');
+            }
+        });
+
+        // Toggle Modals
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
         }
 
-        function send() {
-            const i = document.getElementById('user-input');
-            const s = document.getElementById('chat-stream');
-            if(!i.value) return;
-            
-            s.innerHTML += `<div class="flex justify-end mb-4"><div class="btn-elite p-5 rounded-3xl rounded-tr-none max-w-[80%] font-bold shadow-2xl">${i.value}</div></div>`;
-            const val = i.value; i.value = '';
-            s.scrollTop = s.scrollHeight;
+        // Toggle Password Visibility
+        function togglePassword() {
+            const field = document.getElementById('passwordField');
+            const icon = document.getElementById('eyeIcon');
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.setAttribute('data-lucide', 'eye');
+            } else {
+                field.type = 'password';
+                icon.setAttribute('data-lucide', 'eye-off');
+            }
+            lucide.createIcons(); // Refresh icons
+        }
 
-            setTimeout(() => {
-                s.innerHTML += `
-                    <div class="flex justify-start">
-                        <div class="crystal p-6 rounded-3xl rounded-tl-none max-w-[85%] border-r-4 border-fuchsia-500">
-                            <p class="text-slate-300 leading-relaxed">${val} - הבקשה עובדה דרך מודל ${state[state.length-1].n}. הכל תקין.</p>
-                        </div>
-                    </div>`;
-                s.scrollTop = s.scrollHeight;
-            }, 800);
+        // Close modal on background click
+        window.onclick = function(event) {
+            if (event.target.id.includes('Modal')) {
+                toggleModal(event.target.id);
+            }
         }
     </script>
 </body>
