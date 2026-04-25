@@ -204,47 +204,48 @@
         }
 
         async function handleMessage() {
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
-            const apiKey = getApiKey();
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    const apiKey = getApiKey();
 
-            if(!apiKey) { alert("יש להזין מפתח API בדף הניהול"); return; }
-            if(!msg || state.isTyping) return;
+    if(!apiKey) { alert("יש להזין מפתח API בדף הניהול"); return; }
+    if(!msg || state.isTyping) return;
 
-            appendMessage('user', msg);
-            input.value = '';
-            state.isTyping = true;
-            document.getElementById('typing').style.display = 'block';
+    appendMessage('user', msg);
+    input.value = '';
+    state.isTyping = true;
+    document.getElementById('typing').style.display = 'block';
 
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: state.systemPrompt + "\n\nUser: " + msg }] }]
-                    })
-                });
+    try {
+        // הכתובת המעודכנת עם v1beta
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: state.systemPrompt + "\n\nUser: " + msg }] }]
+            })
+        });
 
-                const data = await response.json();
-                
-                if(data.error) throw new Error(data.error.message);
-                
-                const aiText = data.candidates[0].content.parts[0].text;
-                appendMessage('ai', aiText);
-                
-                state.interactions++;
-                localStorage.setItem('sig_int', state.interactions);
-                checkStatus();
+        const data = await response.json();
+        if(data.error) throw new Error(data.error.message);
+        
+        const aiText = data.candidates[0].content.parts[0].text;
+        appendMessage('ai', aiText);
+        
+        state.interactions++;
+        localStorage.setItem('sig_int', state.interactions);
+        checkStatus();
 
-            } catch (err) {
-                console.error(err);
-                appendMessage('ai', "שגיאה: המפתח לא תקין או שיש בעיית תקשורת.");
-            } finally {
-                state.isTyping = false;
-                document.getElementById('typing').style.display = 'none';
-            }
-        }
+    } catch (err) {
+        console.error(err);
+        appendMessage('ai', "שגיאה: " + err.message);
+    } finally {
+        state.isTyping = false;
+        document.getElementById('typing').style.display = 'none';
+    }
+}
 
         function appendMessage(role, text) {
             const win = document.getElementById('chat-window');
