@@ -208,7 +208,10 @@
     const msg = input.value.trim();
     const apiKey = getApiKey();
 
-    if(!apiKey) { alert("יש להזין מפתח API בדף הניהול"); return; }
+    if(!apiKey) { 
+        alert("יש להזין מפתח API בדף הניהול"); 
+        return; 
+    }
     if(!msg || state.isTyping) return;
 
     appendMessage('user', msg);
@@ -216,47 +219,72 @@
     state.isTyping = true;
     document.getElementById('typing').style.display = 'block';
 
-    try {
-        // הכתובת המעודכנת עם v1beta
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${apiKey}`;
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: state.systemPrompt + "\n\nUser: " + msg }] }]
-            })
-        });
+    // רשימת מודלים לבדיקה אוטומטית - אחד מהם חייב לעבוד
+    const models = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro",
+        "gemini-pro"
+    ];
 
-        const data = await response.json();
-        if(data.error) throw new Error(data.error.message);
-        
-        const aiText = data.candidates[0].content.parts[0].text;
-        appendMessage('ai', aiText);
-        
-        state.interactions++;
-        localStorage.setItem('sig_int', state.interactions);
-        checkStatus();
+    let success = false;
+    let lastError = "";
 
-    } catch (err) {
-        console.error(err);
-        appendMessage('ai', "שגיאה: " + err.message);
-    } finally {
-        state.isTyping = false;
-        document.getElementById('typing').style.display = 'none';
+    for (let modelName of models) {
+        if (success) break;
+        
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: state.systemPrompt + "\n\nUser: " + msg }] }]
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                lastError = data.error.message;
+                console.warn(`ניסיון עם ${modelName} נכשל, מנסה מודל הבא...`);
+                continue;
+            }
+
+            if (data.candidates && data.candidates[0].content) {
+                const aiText = data.candidates[0].content.parts[0].text;
+                appendMessage('ai', aiText);
+                success = true;
+                
+                state.interactions++;
+                localStorage.setItem('sig_int', state.interactions);
+                checkStatus();
+            }
+        } catch (err) {
+            lastError = err.message;
+            console.error(`שגיאה בחיבור למודל ${modelName}:`, err);
+        }
     }
+
+    if (!success) {
+        appendMessage('ai', "שגיאה בחיבור. גוגל מדווחת: " + lastError);
+    }
+
+    state.isTyping = false;
+    document.getElementById('typing').style.display = 'none';
 }
 
-        function appendMessage(role, text) {
-            const win = document.getElementById('chat-window');
-            const div = document.createElement('div');
-            div.className = `message ${role}`;
-            div.innerText = text;
-            win.appendChild(div);
-            win.scrollTop = win.scrollHeight;
-        }
+function appendMessage(role, text) {
+    const win = document.getElementById('chat-window');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    div.innerText = text;
+    win.appendChild(div);
+    win.scrollTop = win.scrollHeight;
+}
 
-        window.onload = checkStatus;
+window.onload = checkStatus;
     </script>
 </body>
 </html>
