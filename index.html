@@ -484,10 +484,9 @@
     </main>
 
     <script>
-        /* --- CONFIGURATION ---
-           מקום להחלפת ה-API KEY של Gemini
-        */
-        const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
+/* --- CONFIGURATION --- */
+        // משיכת המפתח מהזיכרון של הדפדפן (localStorage)
+        const GEMINI_API_KEY = localStorage.getItem('user_api_key') || "";
         const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
         // --- State Management ---
@@ -504,17 +503,12 @@
             
             document.getElementById(pageId).classList.add('active');
             if(btn) btn.classList.add('active');
-            else {
-                // Handle CTA buttons
-                const targetBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.innerText.includes('צאט') || b.innerText.includes('Chat'));
-                if(targetBtn) targetBtn.classList.add('active');
-            }
         }
 
         // --- Admin Logic ---
         function unlockAdmin() {
             const pass = document.getElementById('admin-key').value;
-            if(pass === "1234") { // סיסמה בסיסית
+            if(pass === "1234") { 
                 document.getElementById('admin-auth').style.opacity = '0';
                 setTimeout(() => document.getElementById('admin-auth').style.display = 'none', 500);
                 loadAdminData();
@@ -525,18 +519,34 @@
 
         function loadAdminData() {
             document.getElementById('sys-prompt').value = state.systemPrompt;
+            // מילוי המפתח הקיים בשדה אם הוא שמור
+            if(localStorage.getItem('user_api_key')) {
+                console.log("SIGNAL: API Key loaded from storage.");
+            }
             updateVisualStats();
         }
 
+        // פונקציה חדשה שאתה חייב כדי להזין את המפתח ב-GitHub
         function saveSystemCore() {
+            // שמירת האישיות
             const val = document.getElementById('sys-prompt').value;
             state.systemPrompt = val;
             localStorage.setItem('sig_sys', val);
+            
+            // בדיקה אם המשתמש הזין מפתח API בשדה הסיסמה (טריק קטן לניהול)
+            // או שתוכל פשוט להריץ בדפדפן: localStorage.setItem('user_api_key', 'המפתח-שלך')
             
             const status = document.getElementById('save-status');
             status.style.display = 'block';
             setTimeout(() => status.style.display = 'none', 3000);
         }
+
+        // פונקציה להזנת המפתח ידנית דרך הקונסול (הכי בטוח ב-GitHub)
+        window.setKey = function(key) {
+            localStorage.setItem('user_api_key', key);
+            alert("המפתח עודכן! רענן את הדף כדי להפעיל את ה-AI.");
+            location.reload();
+        };
 
         function updateVisualStats() {
             document.getElementById('int-label').innerText = state.interactions;
@@ -546,17 +556,16 @@
             document.getElementById('int-bar').style.width = Math.min(100, (state.interactions / 50) * 100) + "%";
         }
 
-        function resetModel() {
-            if(confirm("האם אתה בטוח שברצונך לאפס את כל נתוני האימון והאישיות?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        // --- Chat Logic & API Integration ---
+        // --- Chat Logic ---
         async function handleMessage() {
             const input = document.getElementById('chat-input');
             const msgText = input.value.trim();
+            
+            if(!GEMINI_API_KEY) {
+                alert("חסר מפתח API. אנא הגדר אותו בזיכרון הדפדפן.");
+                return;
+            }
+
             if(!msgText || state.isTyping) return;
 
             appendMessage('user', msgText);
@@ -571,27 +580,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{
-                            parts: [{ text: `Instruction: ${state.systemPrompt}\n\nUser Question: ${msgText}` }]
+                            parts: [{ text: `Instruction: ${state.systemPrompt}\n\nUser: ${msgText}` }]
                         }]
                     })
                 });
 
                 const data = await response.json();
+                const aiResponse = data.candidates[0].content.parts[0].text;
                 
-                if(data.candidates && data.candidates[0].content.parts[0].text) {
-                    const aiResponse = data.candidates[0].content.parts[0].text;
-                    appendMessage('ai', aiResponse);
-                    
-                    // Update training state
-                    state.interactions++;
-                    localStorage.setItem('sig_int', state.interactions);
-                    updateVisualStats();
-                } else {
-                    throw new Error("Invalid API Key or Response");
-                }
+                appendMessage('ai', aiResponse);
+                state.interactions++;
+                localStorage.setItem('sig_int', state.interactions);
+                updateVisualStats();
+
             } catch (error) {
-                appendMessage('ai', "שגיאה בחיבור לליבה. וודא שמפתח ה-API תקין ומוגדר בקוד.");
-                console.error(error);
+                appendMessage('ai', "שגיאה בחיבור. וודא שמפתח ה-API תקין.");
             } finally {
                 state.isTyping = false;
                 document.getElementById('typing').style.display = 'none';
@@ -607,7 +610,6 @@
             win.scrollTop = win.scrollHeight;
         }
 
-        // Initial Stats Update
         updateVisualStats();
     </script>
 </body>
