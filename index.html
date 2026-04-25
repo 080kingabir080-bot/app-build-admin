@@ -3,238 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sar-AI | הבית של הבינה המלאכותית</title>
+    <title>Sar-AI | Future Intelligence</title>
     <script src="https://tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         @import url('https://googleapis.com');
         
-        body { 
-            font-family: 'Assistant', sans-serif; 
-            background: radial-gradient(circle at top right, #1e1b4b 0%, #020617 100%);
-            color: white; min-height: 100vh; overflow-x: hidden;
+        :root {
+            --primary: #3b82f6;
+            --accent: #d946ef;
+            --bg: #020617;
         }
 
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-gradient { background: linear-gradient(90deg, #d946ef 0%, #3b82f6 100%); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(217, 70, 239, 0.5); }
-        
-        .chat-window { height: calc(100vh - 180px); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* אנימציות */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .logo-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+        body { 
+            font-family: 'Assistant', sans-serif; 
+            background-color: var(--bg);
+            color: white;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.05) 0%, transparent 40%);
+        }
+
+        /* אפקט זכוכית יוקרתי */
+        .crystal {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        /* כפתור בגרפיקה גבוהה */
+        .btn-elite {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
+        }
+
+        .btn-elite:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(217, 70, 239, 0.5);
+        }
+
+        .btn-elite::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+
+        .btn-elite:hover::after { left: 120%; }
+
+        /* קונטיינר עגול קצוות */
+        .rounded-super { border-radius: 40px; }
+
+        /* אנימציית לוגו */
+        .logo-sphere {
+            background: conic-gradient(from 0deg, var(--primary), var(--accent), var(--primary));
+            animation: rotate 4s linear infinite;
+            filter: blur(1px);
+        }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .chat-area { height: calc(100vh - 220px); scrollbar-width: none; }
+        .chat-area::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body onload="initSystem()">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Navigation -->
-    <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto z-50 relative">
-        <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
-            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center logo-glow font-bold text-xs">AI</div>
-            <span class="text-2xl font-bold tracking-tighter">sar-AI</span>
+    <!-- Navbar -->
+    <nav class="p-8 flex justify-between items-center max-w-7xl mx-auto w-full z-50">
+        <div class="flex items-center gap-4 group cursor-pointer" onclick="navigate('home')">
+            <div class="relative w-12 h-12 flex items-center justify-center">
+                <div class="absolute inset-0 logo-sphere rounded-full opacity-50 blur-md"></div>
+                <div class="relative bg-slate-950 w-10 h-10 rounded-full flex items-center justify-center border border-white/20">
+                    <span class="font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500">S</span>
+                </div>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tighter italic">sar-AI</h1>
         </div>
-        <div class="hidden md:flex gap-8 items-center text-sm font-medium text-slate-300">
-            <button onclick="showPage('home')" class="hover:text-white transition-colors">בית</button>
-            <button onclick="showPage('chat')" class="hover:text-white transition-colors">התחילו עכשיו</button>
-            <button onclick="showPage('login')" class="hover:text-white transition-colors">ניהול</button>
+        
+        <div class="hidden md:flex crystal px-8 py-3 rounded-full gap-10 text-sm font-bold tracking-widest text-slate-400">
+            <button onclick="navigate('home')" class="hover:text-white transition-all uppercase">בית</button>
+            <button onclick="navigate('chat')" class="hover:text-white transition-all uppercase">צ'אט</button>
+            <button onclick="navigate('admin')" class="hover:text-white transition-all uppercase">ניהול</button>
         </div>
-        <button onclick="showPage('login')" class="glass px-6 py-2 rounded-full text-sm font-bold border-white/20 hover:bg-white/10 transition-all">התחברות</button>
+
+        <button onclick="navigate('login')" class="btn-elite px-8 py-3 rounded-full text-sm font-bold uppercase tracking-tighter">התחברות</button>
     </nav>
 
-    <!-- SECTION: HOME -->
-    <main id="page-home" class="page-content max-w-7xl mx-auto px-6 pt-12">
-        <div class="flex flex-col md:flex-row items-center gap-12 text-center md:text-right mb-20">
-            <div class="flex-1 space-y-8 fade-in">
-                <h1 class="text-5xl md:text-7xl font-bold leading-tight">פגשו את סוכן ה-AI <br><span class="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-fuchsia-400">החדש והחכם שלכם</span></h1>
-                <p class="text-slate-400 text-lg max-w-xl mx-auto md:mr-0">מערכת אוטומציה מתקדמת הלומדת, מנתחת ומייעלת את העסק שלכם 24/7.</p>
-                <button onclick="showPage('chat')" class="btn-gradient px-12 py-5 rounded-2xl font-bold text-xl shadow-xl">התחילו עכשיו</button>
-            </div>
-            <div class="flex-1 relative fade-in" style="animation-delay: 0.2s">
-                <div class="w-80 h-80 md:w-[450px] md:h-[450px] rounded-full border border-blue-500/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
-                <div class="relative z-10 w-64 h-64 md:w-96 md:h-96 mx-auto rounded-full overflow-hidden border-4 border-white/5 shadow-2xl">
-                    <img src="https://unsplash.com" class="w-full h-full object-cover mix-blend-lighten scale-125">
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-20 fade-in" style="animation-delay: 0.4s">
-            <div class="glass p-8 rounded-[32px] hover:border-blue-500/50 transition-all group">
-                <i class="fas fa-bolt text-3xl text-blue-400 mb-6 block"></i>
-                <h3 class="text-xl font-bold mb-3">אוטומציה מתקדמת</h3>
-                <p class="text-slate-400 text-sm leading-relaxed">ייעול שיטות עבודה ותהליכים עסקיים במינימום מאמץ.</p>
-            </div>
-            <div class="glass p-8 rounded-[32px] border-fuchsia-500/20 hover:border-fuchsia-500/50 transition-all">
-                <i class="fas fa-brain text-3xl text-fuchsia-400 mb-6 block"></i>
-                <h3 class="text-xl font-bold mb-3">למידה חכמה</h3>
-                <p class="text-slate-400 text-sm leading-relaxed">הסוכן לומד את העסק שלך ומפיק תובנות בזמן אמת.</p>
-            </div>
-            <div class="glass p-8 rounded-[32px] hover:border-blue-500/50 transition-all">
-                <i class="fas fa-shield-heart text-3xl text-blue-400 mb-6 block"></i>
-                <h3 class="text-xl font-bold mb-3">תמיכה 24/7</h3>
-                <p class="text-slate-400 text-sm leading-relaxed">מענה מיידי לכל שאלה ובקשה בכל רגע נתון.</p>
+    <!-- Main Section: Home -->
+    <section id="view-home" class="view px-6 pt-12 flex-1 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
+        <div class="flex-1 space-y-10 text-center md:text-right">
+            <h2 class="text-6xl md:text-8xl font-black leading-[0.9] tracking-tighter">
+                FUTURE <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-fuchsia-500">INTELLIGENCE</span>
+            </h2>
+            <p class="text-slate-400 text-xl font-light leading-relaxed max-w-lg md:mr-0 mx-auto">
+                הסוכן החכם של Sar-AI משנה את חוקי המשחק. למידה, ניתוח וביצוע - הכל בממשק אחד עוצמתי.
+            </p>
+            <div class="flex gap-4 justify-center md:justify-start">
+                <button onclick="navigate('chat')" class="btn-elite px-12 py-5 rounded-2xl font-black text-xl">התחילו עכשיו</button>
+                <button class="crystal px-12 py-5 rounded-2xl font-bold hover:bg-white/5 transition-all text-xl">למידע נוסף</button>
             </div>
         </div>
-    </main>
-
-    <!-- SECTION: CHAT -->
-    <section id="page-chat" class="page-content hidden max-w-4xl mx-auto px-4 h-[85vh] flex flex-col pt-4 fade-in">
-        <div class="flex justify-between items-center mb-4 glass p-4 rounded-2xl">
-            <div class="flex items-center gap-3">
-                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
-                <span class="font-bold">Sar-AI Live</span>
+        
+        <!-- Orb Animation -->
+        <div class="flex-1 relative flex items-center justify-center">
+            <div class="absolute w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[100px] animate-pulse"></div>
+            <div class="crystal w-80 h-80 md:w-[450px] md:h-[450px] rounded-full flex items-center justify-center p-8 border-white/5 relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('https://transparenttextures.com')] opacity-20"></div>
+                <img src="https://unsplash.com" class="w-full h-full object-cover rounded-full mix-blend-screen opacity-70 scale-110">
             </div>
-            <div id="active-tabs" class="flex gap-2"></div>
-        </div>
-        <div id="chat-box" class="chat-window overflow-y-auto space-y-4 pr-2 mb-4 no-scrollbar"></div>
-        <div class="relative mt-auto">
-            <input type="text" id="chat-input" onkeypress="if(event.key==='Enter') handleChat()" placeholder="שאל את Sar-AI כל דבר..." class="w-full glass bg-white/5 p-5 rounded-2xl outline-none focus:border-blue-500 pr-16 text-lg">
-            <button onclick="handleChat()" class="absolute left-3 top-3 bottom-3 px-6 btn-gradient rounded-xl"><i class="fas fa-paper-plane"></i></button>
         </div>
     </section>
 
-    <!-- SECTION: LOGIN -->
-    <section id="page-login" class="page-content hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md fade-in">
-        <div class="glass w-full max-w-md p-10 rounded-[40px] shadow-2xl relative border-white/20">
-            <button onclick="showPage('home')" class="absolute top-8 left-8 text-slate-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
-            <div class="text-center mb-10">
-                <div class="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
-                    <i class="fas fa-fingerprint text-blue-400 text-3xl"></i>
+    <!-- Section: Chat -->
+    <section id="view-chat" class="view hidden px-4 md:px-0 flex-1 max-w-4xl mx-auto w-full pt-4">
+        <div class="crystal rounded-super p-6 h-full flex flex-col">
+            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.6)]"></span>
+                    <span class="font-bold text-slate-300">Sar-AI Neural Active</span>
                 </div>
-                <h2 class="text-3xl font-bold mb-2">כניסת מנהל</h2>
-                <p class="text-slate-500 text-sm">גישה לליבת המערכת - Sar-AI Admin</p>
+                <div id="tabs" class="flex gap-2"></div>
             </div>
+            <div id="chat-stream" class="chat-area overflow-y-auto space-y-6 px-4"></div>
+            <div class="mt-auto relative pt-4">
+                <input type="text" id="user-input" onkeypress="if(event.key==='Enter') send()" placeholder="הזן פקודה למערכת..." class="w-full bg-white/5 border border-white/10 rounded-3xl py-6 px-8 outline-none focus:border-blue-500 text-lg">
+                <button onclick="send()" class="absolute left-3 top-7 px-8 btn-elite rounded-2xl py-3"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Login (Admin Gate) -->
+    <section id="view-login" class="view hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
+        <div class="crystal w-full max-w-md p-12 rounded-super text-center relative">
+            <button onclick="navigate('home')" class="absolute top-8 left-8 text-slate-500 hover:text-white"><i class="fas fa-times"></i></button>
+            <h2 class="text-4xl font-black mb-8 italic">ADMIN PORTAL</h2>
             <div class="space-y-6">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 mr-2">מזהה משתמש</label>
-                    <input type="text" id="admUser" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500" placeholder="Admin">
+                <div class="text-right">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mr-4">מזהה כניסה</label>
+                    <input type="text" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-blue-500" placeholder="Username">
                 </div>
-                <div class="relative">
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 mr-2">סיסמה מוצפנת</label>
-                    <input type="password" id="admPass" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500" placeholder="••••••••">
-                    <button onclick="togglePass()" class="absolute left-5 bottom-4 text-slate-500 hover:text-blue-400"><i id="eye-icon" class="fas fa-eye-slash"></i></button>
+                <div class="text-right relative">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase mr-4">קוד גישה</label>
+                    <input type="password" id="adm-p" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-blue-500" placeholder="••••••••">
+                    <i class="fas fa-eye-slash absolute left-6 bottom-6 text-slate-600 cursor-pointer hover:text-white" onclick="tglP()"></i>
                 </div>
-                <div class="flex items-center gap-3 px-2">
-                    <input type="checkbox" id="rem" class="w-4 h-4 rounded bg-white/5 border-white/20 text-blue-600">
-                    <label for="rem" class="text-sm text-slate-400">זכור את הפרטים שלי</label>
+                <div class="flex items-center gap-3 py-2 px-2">
+                    <input type="checkbox" id="rmb" class="w-5 h-5 rounded bg-slate-900 border-white/10 text-blue-600">
+                    <label for="rmb" class="text-sm text-slate-400">שמור פרטי גישה מוצפנים</label>
                 </div>
-                <button onclick="login()" class="w-full btn-gradient py-5 rounded-2xl font-bold text-lg shadow-xl">כניסה למערכת</button>
+                <button onclick="navigate('admin')" class="w-full btn-elite py-5 rounded-2xl font-black text-xl">כניסה מאובטחת</button>
             </div>
         </div>
     </section>
 
-    <!-- SECTION: ADMIN PANEL -->
-    <section id="page-admin" class="page-content hidden max-w-6xl mx-auto px-6 pt-6 fade-in h-[90vh] flex flex-col">
-        <div class="flex justify-between items-center mb-8 glass p-6 rounded-3xl">
-            <h2 class="text-2xl font-bold flex items-center gap-3"><i class="fas fa-microchip text-blue-400"></i> ניהול מנגנוני בינה</h2>
-            <button onclick="logout()" class="text-red-400 text-sm font-bold border border-red-400/20 px-4 py-2 rounded-xl hover:bg-red-400/10">התנתק</button>
+    <!-- Section: Admin Management -->
+    <section id="view-admin" class="view hidden flex-1 max-w-6xl mx-auto w-full p-8 space-y-8">
+        <div class="flex justify-between items-center crystal p-8 rounded-super">
+            <h2 class="text-3xl font-black italic">CORE CONFIGURATION</h2>
+            <button onclick="navigate('home')" class="text-red-400 font-bold border border-red-400/20 px-6 py-2 rounded-xl hover:bg-red-400/10">LOGOUT</button>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-hidden">
-            <div class="glass p-8 rounded-[40px] border-blue-500/20 flex flex-col h-full overflow-y-auto no-scrollbar">
-                <h3 class="text-xl font-bold mb-6 text-blue-400">הזרקת יכולת חדשה</h3>
-                <div class="space-y-4 flex-1">
-                    <input type="text" id="skillName" placeholder="שם הכרטיסייה (למשל: מודל פסיכולוגי)" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500">
-                    <textarea id="skillLogic" placeholder="הגדר את חוקי החשיבה והטון..." class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 h-40 outline-none focus:border-blue-500 font-mono text-sm"></textarea>
-                    <button onclick="addSkill()" class="w-full btn-gradient py-5 rounded-2xl font-bold">עדכן זיכרון טווח ארוך</button>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[60vh]">
+            <div class="crystal p-10 rounded-super flex flex-col">
+                <h3 class="text-xl font-bold mb-6 text-blue-400 uppercase tracking-tighter">Inject New Ability</h3>
+                <input type="text" id="sk-n" placeholder="Module Name" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 mb-4 outline-none focus:border-blue-500">
+                <textarea id="sk-l" placeholder="Logic Rules & Psychology..." class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 flex-1 mb-6 outline-none focus:border-blue-500 font-mono text-sm"></textarea>
+                <button onclick="addSk()" class="btn-elite py-5 rounded-2xl font-black">SAVE TO NEURAL NETWORK</button>
             </div>
-            <div id="skills-list" class="space-y-4 overflow-y-auto no-scrollbar pr-2"></div>
+            <div id="sk-list" class="space-y-4 overflow-y-auto pr-4"></div>
         </div>
     </section>
 
     <script>
-        let brain = {
-            modules: JSON.parse(localStorage.getItem('SAR_MODULES')) || [
-                { name: "ליבה", logic: "עונה בעברית רהוטה, ניתוח לוגי." },
-                { name: "רגשי", logic: "מזהה רגשות ומתאים את הטון." }
-            ]
-        };
+        let state = JSON.parse(localStorage.getItem('SAR_S')) || [{n: "CORE", l: "Logic active."}];
 
-        function initSystem() {
-            renderSkills();
-            renderTabs();
+        function navigate(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+            if(id === 'chat' || id === 'admin') render();
         }
 
-        function showPage(pageId) {
-            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+        function tglP() {
+            const i = document.getElementById('adm-p');
+            i.type = i.type === 'password' ? 'text' : 'password';
         }
 
-        function togglePass() {
-            const p = document.getElementById('admPass');
-            const i = document.getElementById('eye-icon');
-            p.type = p.type === 'password' ? 'text' : 'password';
-            i.classList.toggle('fa-eye'); i.classList.toggle('fa-eye-slash');
-        }
-
-        function login() {
-            const u = document.getElementById('admUser').value;
-            const p = document.getElementById('admPass').value;
-            if(u === 'admin' && p === 'admin') showPage('admin');
-            else alert('גישה נדחתה');
-        }
-
-        function logout() { showPage('home'); }
-
-        function addSkill() {
-            const n = document.getElementById('skillName').value;
-            const l = document.getElementById('skillLogic').value;
+        function addSk() {
+            const n = document.getElementById('sk-n').value;
+            const l = document.getElementById('sk-l').value;
             if(!n || !l) return;
-            brain.modules.push({name: n, logic: l});
-            localStorage.setItem('SAR_MODULES', JSON.stringify(brain.modules));
-            document.getElementById('skillName').value = '';
-            document.getElementById('skillLogic').value = '';
-            renderSkills(); renderTabs();
-            alert('יכולת חדשה הוטמעה!');
+            state.push({n, l});
+            localStorage.setItem('SAR_S', JSON.stringify(state));
+            render();
+            document.getElementById('sk-n').value = '';
+            document.getElementById('sk-l').value = '';
         }
 
-        function renderSkills() {
-            const list = document.getElementById('skills-list');
-            list.innerHTML = brain.modules.map((m, i) => `
-                <div class="glass p-6 rounded-3xl flex justify-between items-center group animate-in slide-in-from-right">
-                    <div class="flex-1">
-                        <div class="text-blue-400 font-bold mb-1">${m.name}</div>
-                        <div class="text-xs text-slate-500 font-mono truncate w-64">${m.logic}</div>
+        function render() {
+            const list = document.getElementById('sk-list');
+            const tabs = document.getElementById('tabs');
+            if(list) list.innerHTML = state.map((s, i) => `
+                <div class="crystal p-6 rounded-3xl flex justify-between items-center group">
+                    <div>
+                        <div class="text-blue-400 font-black text-sm uppercase">${s.n}</div>
+                        <div class="text-xs text-slate-500 font-mono mt-1">${s.l.substring(0,40)}...</div>
                     </div>
-                    <button onclick="removeSkill(${i})" class="text-slate-600 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt"></i></button>
+                    <button onclick="state.splice(${i},1);localStorage.setItem('SAR_S', JSON.stringify(state));render();" class="text-slate-700 hover:text-red-500 transition-all">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             `).join('');
+            if(tabs) tabs.innerHTML = state.map(s => `<span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold text-slate-500">${s.n}</span>`).join('');
         }
 
-        function removeSkill(i) {
-            brain.modules.splice(i, 1);
-            localStorage.setItem('SAR_MODULES', JSON.stringify(brain.modules));
-            renderSkills(); renderTabs();
-        }
-
-        function renderTabs() {
-            const tabs = document.getElementById('active-tabs');
-            tabs.innerHTML = brain.modules.map(m => `<span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] text-slate-400 font-bold">${m.name}</span>`).join('');
-        }
-
-        function handleChat() {
-            const input = document.getElementById('chat-input');
-            const box = document.getElementById('chat-box');
-            if(!input.value) return;
-
-            box.innerHTML += `<div class="flex justify-end"><div class="btn-gradient p-4 rounded-2xl rounded-tr-none max-w-[80%] shadow-lg">${input.value}</div></div>`;
-            const userVal = input.value;
-            input.value = '';
+        function send() {
+            const i = document.getElementById('user-input');
+            const s = document.getElementById('chat-stream');
+            if(!i.value) return;
+            
+            s.innerHTML += `<div class="flex justify-end mb-4"><div class="btn-elite p-5 rounded-3xl rounded-tr-none max-w-[80%] font-bold shadow-2xl">${i.value}</div></div>`;
+            const val = i.value; i.value = '';
+            s.scrollTop = s.scrollHeight;
 
             setTimeout(() => {
-                const currentModule = brain.modules[brain.modules.length-1].name;
-                box.innerHTML += `
-                    <div class="flex justify-start animate-in fade-in">
-                        <div class="glass p-4 rounded-2xl rounded-tl-none max-w-[85%] border-r-4 border-blue-500">
-                            <div class="text-[9px] text-blue-400 font-bold mb-2 uppercase tracking-tighter">Sar-AI Core Analysis [${currentModule}]</div>
-                            <p class="text-sm">ניתחתי את בקשתך: "${userVal}". המערכת פועלת לפי חוקי ה${currentModule} שהוגדרו בניהול.</p>
+                s.innerHTML += `
+                    <div class="flex justify-start">
+                        <div class="crystal p-6 rounded-3xl rounded-tl-none max-w-[85%] border-r-4 border-fuchsia-500">
+                            <p class="text-slate-300 leading-relaxed">${val} - הבקשה עובדה דרך מודל ${state[state.length-1].n}. הכל תקין.</p>
                         </div>
                     </div>`;
-                box.scrollTop = box.scrollHeight;
+                s.scrollTop = s.scrollHeight;
             }, 800);
         }
     </script>
