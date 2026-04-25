@@ -3,201 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sar-AI | Self-Evolving Core</title>
+    <title>Sar-AI | הבית של הבינה המלאכותית</title>
     <script src="https://tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cloudflare.com">
     <style>
         @import url('https://googleapis.com');
-        body { font-family: 'Assistant', sans-serif; background: #010409; color: #c9d1d9; overflow: hidden; }
-        .self-core-glass { background: rgba(13, 17, 23, 0.9); border: 1px solid #30363d; backdrop-filter: blur(20px); }
-        .trait-slider { appearance: none; height: 4px; background: #30363d; border-radius: 5px; outline: none; }
-        .trait-slider::-webkit-slider-thumb { appearance: none; width: 15px; height: 15px; background: #58a6ff; border-radius: 50%; cursor: pointer; border: 2px solid #010409; }
-        .persona-pulse { animation: pulse-shadow 3s infinite; }
-        @keyframes pulse-shadow { 0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.2); } 70% { box-shadow: 0 0 0 15px rgba(88, 166, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); } }
-        .msg-glow { border-right: 3px solid #58a6ff; box-shadow: -5px 0 15px rgba(88, 166, 255, 0.05); }
+        
+        body { 
+            font-family: 'Assistant', sans-serif; 
+            background: radial-gradient(circle at top right, #1e1b4b 0%, #020617 100%);
+            color: white; min-height: 100vh; overflow-x: hidden;
+        }
+
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn-gradient { background: linear-gradient(90deg, #d946ef 0%, #3b82f6 100%); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(217, 70, 239, 0.5); }
+        
+        .chat-window { height: calc(100vh - 180px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* אנימציות */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .logo-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
     </style>
 </head>
-<body class="flex flex-col h-screen" onload="initSystem()">
+<body onload="initSystem()">
 
-    
-    <header class="p-5 self-core-glass flex justify-between items-center z-50 border-b border-white/5">
-        <div class="flex items-center gap-4">
-            <div class="persona-pulse w-14 h-14 bg-gradient-to-br from-[#1f6feb] to-[#8957e5] rounded-full flex items-center justify-center">
-                <i class="fas fa-fingerprint text-white text-2xl"></i>
+    <!-- Navigation -->
+    <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto z-50 relative">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
+            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center logo-glow font-bold text-xs">AI</div>
+            <span class="text-2xl font-bold tracking-tighter">sar-AI</span>
+        </div>
+        <div class="hidden md:flex gap-8 items-center text-sm font-medium text-slate-300">
+            <button onclick="showPage('home')" class="hover:text-white transition-colors">בית</button>
+            <button onclick="showPage('chat')" class="hover:text-white transition-colors">התחילו עכשיו</button>
+            <button onclick="showPage('login')" class="hover:text-white transition-colors">ניהול</button>
+        </div>
+        <button onclick="showPage('login')" class="glass px-6 py-2 rounded-full text-sm font-bold border-white/20 hover:bg-white/10 transition-all">התחברות</button>
+    </nav>
+
+    <!-- SECTION: HOME -->
+    <main id="page-home" class="page-content max-w-7xl mx-auto px-6 pt-12">
+        <div class="flex flex-col md:flex-row items-center gap-12 text-center md:text-right mb-20">
+            <div class="flex-1 space-y-8 fade-in">
+                <h1 class="text-5xl md:text-7xl font-bold leading-tight">פגשו את סוכן ה-AI <br><span class="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-fuchsia-400">החדש והחכם שלכם</span></h1>
+                <p class="text-slate-400 text-lg max-w-xl mx-auto md:mr-0">מערכת אוטומציה מתקדמת הלומדת, מנתחת ומייעלת את העסק שלכם 24/7.</p>
+                <button onclick="showPage('chat')" class="btn-gradient px-12 py-5 rounded-2xl font-bold text-xl shadow-xl">התחילו עכשיו</button>
             </div>
-            <div>
-                <h1 id="agentNameDisplay" class="text-xl font-black tracking-tight text-white uppercase">Sar-AI Core</h1>
-                <div class="flex gap-3 text-[10px] font-mono text-slate-500 uppercase">
-                    <span id="personaTag">Status: Adaptive</span>
-                    <span class="text-green-500">• Synapse Active</span>
+            <div class="flex-1 relative fade-in" style="animation-delay: 0.2s">
+                <div class="w-80 h-80 md:w-[450px] md:h-[450px] rounded-full border border-blue-500/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
+                <div class="relative z-10 w-64 h-64 md:w-96 md:h-96 mx-auto rounded-full overflow-hidden border-4 border-white/5 shadow-2xl">
+                    <img src="https://unsplash.com" class="w-full h-full object-cover mix-blend-lighten scale-125">
                 </div>
             </div>
         </div>
-        <button onclick="toggleSelfPanel()" class="bg-[#21262d] hover:bg-[#30363d] px-5 py-2.5 rounded-xl border border-[#30363d] transition-all text-xs font-bold text-blue-400">
-            <i class="fas fa-user-gear ml-2"></i> ערוך אישיות (SELF)
-        </button>
-    </header>
 
-    <!-- Neural Stream -->
-    <main id="neuralStream" class="flex-1 overflow-y-auto p-6 space-y-6 bg-[#0d1117]"></main>
-
-    <!-- Core Command Input -->
-    <footer class="p-6 bg-[#010409] border-t border-[#30363d]">
-        <div class="max-w-4xl mx-auto relative flex gap-3">
-            <input type="text" id="userInput" onkeypress="if(event.key==='Enter') processSignal()" 
-                placeholder="הזן פקודה או התחל שיחה..." 
-                class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-2xl py-4 px-6 outline-none focus:border-[#58a6ff] transition-all text-white shadow-inner">
-            <button onclick="processSignal()" class="bg-[#238636] hover:bg-[#2ea043] px-8 rounded-2xl text-white transition-all shadow-lg">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-20 fade-in" style="animation-delay: 0.4s">
+            <div class="glass p-8 rounded-[32px] hover:border-blue-500/50 transition-all group">
+                <i class="fas fa-bolt text-3xl text-blue-400 mb-6 block"></i>
+                <h3 class="text-xl font-bold mb-3">אוטומציה מתקדמת</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">ייעול שיטות עבודה ותהליכים עסקיים במינימום מאמץ.</p>
+            </div>
+            <div class="glass p-8 rounded-[32px] border-fuchsia-500/20 hover:border-fuchsia-500/50 transition-all">
+                <i class="fas fa-brain text-3xl text-fuchsia-400 mb-6 block"></i>
+                <h3 class="text-xl font-bold mb-3">למידה חכמה</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">הסוכן לומד את העסק שלך ומפיק תובנות בזמן אמת.</p>
+            </div>
+            <div class="glass p-8 rounded-[32px] hover:border-blue-500/50 transition-all">
+                <i class="fas fa-shield-heart text-3xl text-blue-400 mb-6 block"></i>
+                <h3 class="text-xl font-bold mb-3">תמיכה 24/7</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">מענה מיידי לכל שאלה ובקשה בכל רגע נתון.</p>
+            </div>
         </div>
-    </footer>
+    </main>
 
-    <!-- SELF-ENGINEERING PANEL -->
-    <div id="selfPanel" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] hidden flex items-center justify-center p-6">
-        <div class="bg-[#0d1117] w-full max-w-4xl rounded-[2rem] border border-[#30363d] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="p-8 border-b border-[#30363d] flex justify-between items-center bg-[#161b22]">
+    <!-- SECTION: CHAT -->
+    <section id="page-chat" class="page-content hidden max-w-4xl mx-auto px-4 h-[85vh] flex flex-col pt-4 fade-in">
+        <div class="flex justify-between items-center mb-4 glass p-4 rounded-2xl">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                <span class="font-bold">Sar-AI Live</span>
+            </div>
+            <div id="active-tabs" class="flex gap-2"></div>
+        </div>
+        <div id="chat-box" class="chat-window overflow-y-auto space-y-4 pr-2 mb-4 no-scrollbar"></div>
+        <div class="relative mt-auto">
+            <input type="text" id="chat-input" onkeypress="if(event.key==='Enter') handleChat()" placeholder="שאל את Sar-AI כל דבר..." class="w-full glass bg-white/5 p-5 rounded-2xl outline-none focus:border-blue-500 pr-16 text-lg">
+            <button onclick="handleChat()" class="absolute left-3 top-3 bottom-3 px-6 btn-gradient rounded-xl"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </section>
+
+    <!-- SECTION: LOGIN -->
+    <section id="page-login" class="page-content hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md fade-in">
+        <div class="glass w-full max-w-md p-10 rounded-[40px] shadow-2xl relative border-white/20">
+            <button onclick="showPage('home')" class="absolute top-8 left-8 text-slate-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <div class="text-center mb-10">
+                <div class="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
+                    <i class="fas fa-fingerprint text-blue-400 text-3xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">כניסת מנהל</h2>
+                <p class="text-slate-500 text-sm">גישה לליבת המערכת - Sar-AI Admin</p>
+            </div>
+            <div class="space-y-6">
                 <div>
-                    <h2 class="text-3xl font-black text-white italic">SELF-ENGINEERING</h2>
-                    <p class="text-blue-400 text-xs font-mono uppercase tracking-widest">Adjusting Core Behavioral Constants</p>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 mr-2">מזהה משתמש</label>
+                    <input type="text" id="admUser" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500" placeholder="Admin">
                 </div>
-                <button onclick="toggleSelfPanel()" class="text-slate-500 hover:text-white text-3xl">&times;</button>
-            </div>
-
-            <div class="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-10">
-                
-                <div class="space-y-6">
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-tighter">זהות ליבה</h3>
-                    <div>
-                        <label class="block text-xs mb-2">שם הסוכן</label>
-                        <input type="text" id="agentName" class="w-full bg-[#010409] border border-[#30363d] p-3 rounded-lg outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs mb-2">תיאור התנהגותי (System Persona)</label>
-                        <textarea id="agentPersona" class="w-full bg-[#010409] border border-[#30363d] p-3 rounded-lg h-32 text-sm outline-none focus:border-blue-500"></textarea>
-                    </div>
+                <div class="relative">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2 mr-2">סיסמה מוצפנת</label>
+                    <input type="password" id="admPass" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500" placeholder="••••••••">
+                    <button onclick="togglePass()" class="absolute left-5 bottom-4 text-slate-500 hover:text-blue-400"><i id="eye-icon" class="fas fa-eye-slash"></i></button>
                 </div>
-
-                <!-- Traits / Sliders -->
-                <div class="space-y-8">
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-tighter">משקולות פסיכולוגיות</h3>
-                    
-                    <div class="space-y-4">
-                        <div class="flex justify-between text-[10px] uppercase"><span>אנליטי</span><span>אנושי/אמפתטי</span></div>
-                        <input type="range" id="traitEmpathy" class="trait-slider w-full">
-                        
-                        <div class="flex justify-between text-[10px] uppercase"><span>רציני</span><span>הומוריסטי/ציני</span></div>
-                        <input type="range" id="traitHumor" class="trait-slider w-full">
-                        
-                        <div class="flex justify-between text-[10px] uppercase"><span>תמציתי</span><span>יצירתי/מרחיב</span></div>
-                        <input type="range" id="traitCreativity" class="trait-slider w-full">
-                    </div>
-
-                    <div class="bg-blue-500/5 p-4 rounded-xl border border-blue-500/20">
-                        <p class="text-[11px] text-blue-300 leading-relaxed">
-                            <i class="fas fa-info-circle ml-1"></i>
-                            שינוי המשקולות משפיע על ניתוח הטקסט והתגובה בזמן אמת. ערכים גבוהים של 'אמפתיה' יגרמו לסוכן להשתמש ביותר מילות רגש.
-                        </p>
-                    </div>
+                <div class="flex items-center gap-3 px-2">
+                    <input type="checkbox" id="rem" class="w-4 h-4 rounded bg-white/5 border-white/20 text-blue-600">
+                    <label for="rem" class="text-sm text-slate-400">זכור את הפרטים שלי</label>
                 </div>
-            </div>
-
-            <div class="p-8 bg-[#161b22] border-t border-[#30363d] flex gap-4">
-                <button onclick="saveSelf()" class="flex-1 bg-[#238636] text-white py-4 rounded-xl font-bold hover:bg-[#2ea043] transition-all">עדכן רכיב SELF</button>
-                <button onclick="toggleSelfPanel()" class="px-8 py-4 rounded-xl border border-[#30363d] text-white hover:bg-white/5 transition-all">ביטול</button>
+                <button onclick="login()" class="w-full btn-gradient py-5 rounded-2xl font-bold text-lg shadow-xl">כניסה למערכת</button>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- SECTION: ADMIN PANEL -->
+    <section id="page-admin" class="page-content hidden max-w-6xl mx-auto px-6 pt-6 fade-in h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center mb-8 glass p-6 rounded-3xl">
+            <h2 class="text-2xl font-bold flex items-center gap-3"><i class="fas fa-microchip text-blue-400"></i> ניהול מנגנוני בינה</h2>
+            <button onclick="logout()" class="text-red-400 text-sm font-bold border border-red-400/20 px-4 py-2 rounded-xl hover:bg-red-400/10">התנתק</button>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 overflow-hidden">
+            <div class="glass p-8 rounded-[40px] border-blue-500/20 flex flex-col h-full overflow-y-auto no-scrollbar">
+                <h3 class="text-xl font-bold mb-6 text-blue-400">הזרקת יכולת חדשה</h3>
+                <div class="space-y-4 flex-1">
+                    <input type="text" id="skillName" placeholder="שם הכרטיסייה (למשל: מודל פסיכולוגי)" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-blue-500">
+                    <textarea id="skillLogic" placeholder="הגדר את חוקי החשיבה והטון..." class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 h-40 outline-none focus:border-blue-500 font-mono text-sm"></textarea>
+                    <button onclick="addSkill()" class="w-full btn-gradient py-5 rounded-2xl font-bold">עדכן זיכרון טווח ארוך</button>
+                </div>
+            </div>
+            <div id="skills-list" class="space-y-4 overflow-y-auto no-scrollbar pr-2"></div>
+        </div>
+    </section>
 
     <script>
-        let selfCore = {
-            name: "Sar-AI",
-            persona: "אתה סוכן אינטליגנטי, מודע לעצמו, אמין ומקצועי. אתה עונה בעברית מושלמת.",
-            traits: { empathy: 50, humor: 30, creativity: 60 },
-            history: []
+        let brain = {
+            modules: JSON.parse(localStorage.getItem('SAR_MODULES')) || [
+                { name: "ליבה", logic: "עונה בעברית רהוטה, ניתוח לוגי." },
+                { name: "רגשי", logic: "מזהה רגשות ומתאים את הטון." }
+            ]
         };
 
         function initSystem() {
-            const saved = localStorage.getItem('SAR_AI_SELF');
-            if (saved) selfCore = JSON.parse(saved);
-            
-            document.getElementById('agentName').value = selfCore.name;
-            document.getElementById('agentPersona').value = selfCore.persona;
-            document.getElementById('traitEmpathy').value = selfCore.traits.empathy;
-            document.getElementById('traitHumor').value = selfCore.traits.humor;
-            document.getElementById('traitCreativity').value = selfCore.traits.creativity;
-            
-            refreshIdentityUI();
-            addBotMessage("מערכת SELF אותחלה. אני מוכן לשיחה מבוססת אישיות.");
+            renderSkills();
+            renderTabs();
         }
 
-        function refreshIdentityUI() {
-            document.getElementById('agentNameDisplay').innerText = selfCore.name;
-            const pTag = selfCore.traits.empathy > 70 ? "Empathic" : (selfCore.traits.humor > 70 ? "Witty" : "Analytical");
-            document.getElementById('personaTag').innerText = `Status: ${pTag}`;
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
         }
 
-        function saveSelf() {
-            selfCore.name = document.getElementById('agentName').value;
-            selfCore.persona = document.getElementById('agentPersona').value;
-            selfCore.traits = {
-                empathy: document.getElementById('traitEmpathy').value,
-                humor: document.getElementById('traitHumor').value,
-                creativity: document.getElementById('traitCreativity').value
-            };
-            localStorage.setItem('SAR_AI_SELF', JSON.stringify(selfCore));
-            refreshIdentityUI();
-            toggleSelfPanel();
-            addBotMessage(`האישיות שלי עודכנה. מעתה אני פועל כ-${selfCore.name}.`);
+        function togglePass() {
+            const p = document.getElementById('admPass');
+            const i = document.getElementById('eye-icon');
+            p.type = p.type === 'password' ? 'text' : 'password';
+            i.classList.toggle('fa-eye'); i.classList.toggle('fa-eye-slash');
         }
 
-        function processSignal() {
-            const input = document.getElementById('userInput');
-            const val = input.value.trim();
-            if(!val) return;
+        function login() {
+            const u = document.getElementById('admUser').value;
+            const p = document.getElementById('admPass').value;
+            if(u === 'admin' && p === 'admin') showPage('admin');
+            else alert('גישה נדחתה');
+        }
 
-            addMessage('user', val);
+        function logout() { showPage('home'); }
+
+        function addSkill() {
+            const n = document.getElementById('skillName').value;
+            const l = document.getElementById('skillLogic').value;
+            if(!n || !l) return;
+            brain.modules.push({name: n, logic: l});
+            localStorage.setItem('SAR_MODULES', JSON.stringify(brain.modules));
+            document.getElementById('skillName').value = '';
+            document.getElementById('skillLogic').value = '';
+            renderSkills(); renderTabs();
+            alert('יכולת חדשה הוטמעה!');
+        }
+
+        function renderSkills() {
+            const list = document.getElementById('skills-list');
+            list.innerHTML = brain.modules.map((m, i) => `
+                <div class="glass p-6 rounded-3xl flex justify-between items-center group animate-in slide-in-from-right">
+                    <div class="flex-1">
+                        <div class="text-blue-400 font-bold mb-1">${m.name}</div>
+                        <div class="text-xs text-slate-500 font-mono truncate w-64">${m.logic}</div>
+                    </div>
+                    <button onclick="removeSkill(${i})" class="text-slate-600 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function removeSkill(i) {
+            brain.modules.splice(i, 1);
+            localStorage.setItem('SAR_MODULES', JSON.stringify(brain.modules));
+            renderSkills(); renderTabs();
+        }
+
+        function renderTabs() {
+            const tabs = document.getElementById('active-tabs');
+            tabs.innerHTML = brain.modules.map(m => `<span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] text-slate-400 font-bold">${m.name}</span>`).join('');
+        }
+
+        function handleChat() {
+            const input = document.getElementById('chat-input');
+            const box = document.getElementById('chat-box');
+            if(!input.value) return;
+
+            box.innerHTML += `<div class="flex justify-end"><div class="btn-gradient p-4 rounded-2xl rounded-tr-none max-w-[80%] shadow-lg">${input.value}</div></div>`;
+            const userVal = input.value;
             input.value = '';
 
-            // מנגנון תגובה מבוסס אישיות (סימולציה)
             setTimeout(() => {
-                let tone = "";
-                if(selfCore.traits.empathy > 70) tone = "אני מבין אותך לגמרי. ";
-                if(selfCore.traits.humor > 70) tone = "חחח, אהבתי! בכל מקרה, ";
-                if(selfCore.traits.creativity > 70) tone = "חשבתי על כיוון מעניין: ";
-                
-                const response = `${tone}קיבלתי את המסר: "${val}". האישיות שלי כרגע מוגדרת כ-${selfCore.name}.`;
-                addBotMessage(response);
-            }, 1000);
-        }
-
-        function addBotMessage(text) {
-            const stream = document.getElementById('neuralStream');
-            stream.innerHTML += `
-                <div class="flex justify-start animate-in fade-in slide-in-from-right-4 duration-500">
-                    <div class="bg-[#161b22] border border-[#30363d] p-5 rounded-2xl rounded-tr-none max-w-[85%] msg-glow">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
-                            <span class="text-[9px] font-mono text-blue-400 uppercase tracking-widest">${selfCore.name} Core</span>
+                const currentModule = brain.modules[brain.modules.length-1].name;
+                box.innerHTML += `
+                    <div class="flex justify-start animate-in fade-in">
+                        <div class="glass p-4 rounded-2xl rounded-tl-none max-w-[85%] border-r-4 border-blue-500">
+                            <div class="text-[9px] text-blue-400 font-bold mb-2 uppercase tracking-tighter">Sar-AI Core Analysis [${currentModule}]</div>
+                            <p class="text-sm">ניתחתי את בקשתך: "${userVal}". המערכת פועלת לפי חוקי ה${currentModule} שהוגדרו בניהול.</p>
                         </div>
-                        <p class="text-sm leading-relaxed">${text}</p>
-                    </div>
-                </div>`;
-            stream.scrollTop = stream.scrollHeight;
+                    </div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 800);
         }
-
-        function addMessage(role, text) {
-            const stream = document.getElementById('neuralStream');
-            stream.innerHTML += `
-                <div class="flex justify-end animate-in fade-in slide-in-from-left-4 duration-500">
-                    <div class="bg-[#21262d] border border-[#30363d] p-4 rounded-2xl rounded-tl-none max-w-[80%]">
-                        <p class="text-sm text-slate-200">${text}</p>
-                    </div>
-                </div>`;
-            stream.scrollTop = stream.scrollHeight;
-        }
-
-        function toggleSelfPanel() { document.getElementById('selfPanel').classList.toggle('hidden'); }
     </script>
 </body>
 </html>
